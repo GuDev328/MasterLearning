@@ -6,7 +6,6 @@ import {
   getTweetController
 } from '~/controllers/tweetsControllers';
 import {
-  audienceValidator,
   createTweetValidator,
   getNewsFeedValidator,
   getTweetChildrenValidator,
@@ -29,7 +28,6 @@ router.get(
   tweetIdValidator,
   isLoginValidator(accessTokenValidator),
   isLoginValidator(verifiedUserValidator),
-  catchError(audienceValidator),
   catchError(getTweetController)
 );
 
@@ -43,7 +41,6 @@ router.get(
   tweetIdValidator,
   isLoginValidator(accessTokenValidator),
   isLoginValidator(verifiedUserValidator),
-  catchError(audienceValidator),
   catchError(getTweetChildrenController)
 );
 

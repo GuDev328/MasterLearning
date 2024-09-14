@@ -1,10 +1,5 @@
-import { Console } from 'console';
 import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
-import formidable from 'formidable';
-import path from 'path';
-import { httpStatus } from '~/constants/httpStatus';
-import { ErrorWithStatus } from '~/models/Errors';
 import mediasService from '~/services/mediaServices';
 import { sendFileFromS3 } from '~/utils/s3';
 

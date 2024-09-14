@@ -1,7 +1,6 @@
 import {
   AddUsersToCircleRequest,
   ChangePasswordRequest,
-  FollowRequest,
   ForgotPasswordRequest,
   GetMeRequest,
   LoginRequest,
@@ -10,7 +9,6 @@ import {
   RegisterRequest,
   ResendVerifyEmailRequest,
   ResetPasswordRequest,
-  UnfollowRequest,
   UpdateMeRequest,
   VerifyEmailRequest
 } from '~/models/requests/UserRequests';
@@ -24,7 +22,6 @@ import { RefreshToken } from '~/models/schemas/RefreshTokenSchema';
 import { ObjectId } from 'mongodb';
 import { JwtPayload } from 'jsonwebtoken';
 import { httpStatus } from '~/constants/httpStatus';
-import Follower from '~/models/schemas/FollowerSchema';
 import { sendVerifyEmail } from '~/utils/email';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
@@ -400,34 +397,6 @@ class UsersService {
     return user;
   }
 
-  async follow(payload: FollowRequest) {
-    const userId = payload.decodeAuthorization.payload.userId;
-    const followedUserId = new ObjectId(payload.userId);
-    const result = await db.followers.insertOne(
-      new Follower({
-        user_id: userId,
-        followed_user_id: followedUserId,
-        created_at: new Date()
-      })
-    );
-  }
-
-  async unfollow(payload: UnfollowRequest) {
-    const userId = payload.decodeAuthorization.payload.userId;
-    const followedUserId = new ObjectId(payload.userId);
-    const result = await db.followers.deleteOne({
-      user_id: userId,
-      followed_user_id: followedUserId
-    });
-    if (result.deletedCount === 0) {
-      throw new ErrorWithStatus({
-        message: 'This user is not followed yet',
-        status: httpStatus.NOT_FOUND
-      });
-    }
-    return result;
-  }
-
   async changePassword(payload: ChangePasswordRequest) {
     const userId = payload.decodeAuthorization.payload.userId;
     const oldPassword = payload.oldPassword;
@@ -461,15 +430,6 @@ class UsersService {
       );
       return;
     }
-  }
-
-  async setUserCircle(payload: AddUsersToCircleRequest) {
-    const userIds = payload.userIds.map((userId) => new ObjectId(userId));
-    const changeCircle = await db.users.findOneAndUpdate(
-      { _id: new ObjectId(payload.decodeAuthorization.payload.userId) },
-      { $set: { twitter_circle: userIds } },
-      { returnDocument: 'after' }
-    );
   }
 }
 

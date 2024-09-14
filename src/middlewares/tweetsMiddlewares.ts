@@ -4,7 +4,7 @@ import { request } from 'http';
 import { JwtPayload } from 'jsonwebtoken';
 import { isEmpty } from 'lodash';
 import { ObjectId } from 'mongodb';
-import { TokenType, TweetAudience, TweetTypeEnum, MediaType, UserVerifyStatus, Media } from '~/constants/enum';
+import { TokenType, TweetTypeEnum, MediaType, UserVerifyStatus, Media } from '~/constants/enum';
 import { httpStatus } from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
 import Tweet from '~/models/schemas/TweetSchema';
@@ -15,7 +15,6 @@ import { verifyToken } from '~/utils/jwt';
 import { validate } from '~/utils/validation';
 
 const TweetTypes = numberEnumtoArray(TweetTypeEnum);
-const TweetAudienceTypes = numberEnumtoArray(TweetAudience);
 const MediaTypes = numberEnumtoArray(MediaType);
 
 export const createTweetValidator = validate(
@@ -33,37 +32,13 @@ export const createTweetValidator = validate(
         }
       }
     },
-    audience: {
-      custom: {
-        options: async (value: string, { req }) => {
-          if (!TweetAudienceTypes.includes(parseInt(value))) {
-            throw new ErrorWithStatus({
-              status: httpStatus.UNPROCESSABLE_ENTITY,
-              message: 'Audience type is not valid'
-            });
-          }
-          return true;
-        }
-      }
-    },
+
     content: {
       isString: { errorMessage: 'Tweet content must be a string' },
       custom: {
         options: async (value: string, { req }) => {
           const type = req.body.type as TweetTypeEnum;
-          if (type === TweetTypeEnum.Retweet) {
-            if (value !== '') {
-              throw new ErrorWithStatus({
-                status: httpStatus.UNPROCESSABLE_ENTITY,
-                message: 'Tweet content must be empty for Retweet'
-              });
-            }
-          } else if (
-            (type === TweetTypeEnum.QuoteTweet || type === TweetTypeEnum.Comment || type === TweetTypeEnum.Tweet) &&
-            isEmpty(req.body.mentions) &&
-            isEmpty(req.body.hashtags) &&
-            value === ''
-          ) {
+          if ((type === TweetTypeEnum.Comment || type === TweetTypeEnum.Tweet) && value === '') {
             throw new ErrorWithStatus({
               status: httpStatus.UNPROCESSABLE_ENTITY,
               message: 'Missing required content'
@@ -77,7 +52,7 @@ export const createTweetValidator = validate(
       custom: {
         options: async (value: string, { req }) => {
           const type = req.body.type as TweetTypeEnum;
-          if (type === TweetTypeEnum.Retweet || type === TweetTypeEnum.Comment || type === TweetTypeEnum.QuoteTweet) {
+          if (type === TweetTypeEnum.Comment) {
             const parent_id = req.body.parent_id;
             if (parent_id) {
               const parentTweet = await db.tweets.findOne({ _id: new ObjectId(parent_id) });
@@ -106,32 +81,7 @@ export const createTweetValidator = validate(
         }
       }
     },
-    hashtags: {
-      isArray: { errorMessage: 'Hashtags must be an array' },
-      custom: {
-        options: async (value: string[], { req }) => {
-          if (!value.every((hashtag) => typeof hashtag === 'string')) {
-            throw new ErrorWithStatus({
-              message: 'Hashtags must be an array of strings',
-              status: httpStatus.UNPROCESSABLE_ENTITY
-            });
-          }
-        }
-      }
-    },
-    mentions: {
-      isArray: { errorMessage: 'mentions must be an array' },
-      custom: {
-        options: async (value: string[], { req }) => {
-          if (!value.every((mention) => ObjectId.isValid(mention))) {
-            throw new ErrorWithStatus({
-              message: 'mentions must be an array of string ObjectId',
-              status: httpStatus.UNPROCESSABLE_ENTITY
-            });
-          }
-        }
-      }
-    },
+
     medias: {
       isArray: { errorMessage: 'medias must be an array' },
       custom: {
@@ -172,47 +122,11 @@ export const tweetIdValidator = validate(
                     _id: new ObjectId(value)
                   }
                 },
+
                 {
-                  $lookup: {
-                    from: 'Hashtags',
-                    localField: 'hashtags',
-                    foreignField: '_id',
-                    as: 'hashtags'
-                  }
+                  $addFields: {}
                 },
-                {
-                  $lookup: {
-                    from: 'Users',
-                    localField: 'mentions',
-                    foreignField: '_id',
-                    as: 'mentions'
-                  }
-                },
-                {
-                  $addFields: {
-                    mentions: {
-                      $map: {
-                        input: '$mentions',
-                        as: 'mention',
-                        in: {
-                          _id: '$$mention._id',
-                          name: '$$mention.name',
-                          email: '$$mention.email',
-                          username: '$$mention.username',
-                          avatar: '$$mention.avatar'
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  $lookup: {
-                    from: 'Bookmarks',
-                    localField: '_id',
-                    foreignField: 'tweet_id',
-                    as: 'bookmarks'
-                  }
-                },
+
                 {
                   $lookup: {
                     from: 'Likes',
@@ -231,23 +145,10 @@ export const tweetIdValidator = validate(
                 },
                 {
                   $addFields: {
-                    bookmarks: {
-                      $size: '$bookmarks'
-                    },
                     likes: {
                       $size: '$likes'
                     },
-                    retweet: {
-                      $size: {
-                        $filter: {
-                          input: '$tweet_child',
-                          as: 'item',
-                          cond: {
-                            $eq: ['$$item.type', 1]
-                          }
-                        }
-                      }
-                    },
+
                     comment: {
                       $size: {
                         $filter: {
@@ -293,39 +194,6 @@ export const tweetIdValidator = validate(
     }
   })
 );
-
-export const audienceValidator = async (req: Request, res: Response, next: NextFunction) => {
-  const { tweet } = req.body as { tweet: Tweet };
-  if (tweet.audience === TweetAudience.TwitterCircle) {
-    if (!req.body.decodeAuthorization) {
-      throw new ErrorWithStatus({
-        status: httpStatus.UNAUTHORIZED,
-        message: 'Missing authorization'
-      });
-    }
-
-    const author = await db.users.findOne({ _id: new ObjectId(tweet.user_id) });
-    if (!author || author.verify === UserVerifyStatus.Banned) {
-      throw new ErrorWithStatus({
-        status: httpStatus.NOT_FOUND,
-        message: 'User not found'
-      });
-    }
-
-    const userId = req.body.decodeAuthorization.payload.userId;
-    const authorCircle = author.twitter_circle;
-    const isInTweetCircle = authorCircle?.some((userCircleId) => userCircleId.equals(userId));
-    if (!author._id.equals(userId)) {
-      if (!isInTweetCircle) {
-        throw new ErrorWithStatus({
-          status: httpStatus.FORBIDDEN,
-          message: 'User not in tweet circle'
-        });
-      }
-    }
-  }
-  next();
-};
 
 export const getTweetChildrenValidator = validate(
   checkSchema({

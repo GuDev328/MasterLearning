@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import {
   changePasswordController,
-  followController,
   forgotPasswordController,
   getMeController,
   getProfileController,
@@ -12,8 +11,6 @@ import {
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
-  setUserCircleController,
-  unfollowController,
   updateMeController,
   verifyEmailController,
   verifyForgotPasswordController
@@ -22,7 +19,6 @@ import { filterMiddleware } from '~/middlewares/commonMiddlewares';
 import {
   accessTokenValidator,
   changePasswordValidator,
-  followValidator,
   forgotPasswordValidator,
   getProfileValidator,
   loginValidator,
@@ -30,7 +26,6 @@ import {
   registerValidator,
   resetPasswordValidator,
   setUserCirclesValidator,
-  unfollowValidator,
   updateMeValidator,
   verifiedUserValidator,
   verifyEmailValidator,
@@ -67,7 +62,6 @@ router.patch(
     'date_of_birth',
     'bio',
     'location',
-    'website',
     'username',
     'avatar',
     'cover_photo'
@@ -83,22 +77,6 @@ router.get(
   catchError(getProfileController)
 );
 
-router.post('/follow', accessTokenValidator, verifiedUserValidator, followValidator, catchError(followController));
-router.post(
-  '/unfollow',
-  accessTokenValidator,
-  verifiedUserValidator,
-  unfollowValidator,
-  catchError(unfollowController)
-);
-
 router.post('/change-password', accessTokenValidator, changePasswordValidator, catchError(changePasswordController));
-router.post(
-  '/set-circle',
-  accessTokenValidator,
-  verifiedUserValidator,
-  setUserCirclesValidator,
-  catchError(setUserCircleController)
-);
 
 export default router;

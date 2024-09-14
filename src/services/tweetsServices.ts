@@ -2,38 +2,17 @@ import db from '~/services/databaseServices';
 import { TweetRequest, getTweetRequest } from '~/models/requests/TweetRequest';
 import Tweet from '~/models/schemas/TweetSchema';
 import { ObjectId } from 'mongodb';
-import Hashtag from '~/models/schemas/HashtagSchema';
 import { TweetTypeEnum } from '~/constants/enum';
 
 class TweetsService {
   constructor() {}
 
-  async getHashtagsId(hashtags: string[]) {
-    const hashtagsId: ObjectId[] = [];
-    hashtags.map(async (tag) => {
-      if (tag.startsWith('#')) {
-        tag = tag.replace('#', '');
-      }
-      const tagInDb = await db.hashtags.findOne({ name: tag });
-      if (tagInDb) {
-        hashtagsId.push(tagInDb._id);
-      } else {
-        const createTag = await db.hashtags.insertOne(new Hashtag({ name: tag }));
-        hashtagsId.push(createTag.insertedId);
-      }
-    });
-    return hashtagsId;
-  }
-
   async createNewTweet(payload: TweetRequest) {
     const tweet = new Tweet({
       user_id: payload.decodeAuthorization.payload.userId,
       type: payload.type,
-      audience: payload.audience,
       content: payload.content,
       parent_id: payload.parent_id ? new ObjectId(payload.parent_id) : null, //  chỉ null khi tweet gốc
-      hashtags: await this.getHashtagsId(payload.hashtags),
-      mentions: payload.mentions.map((tag) => new ObjectId(tag)),
       medias: payload.medias,
       guest_views: 0,
       user_views: 0
@@ -61,47 +40,7 @@ class TweetsService {
             type: tweet_type
           }
         },
-        {
-          $lookup: {
-            from: 'Hashtags',
-            localField: 'hashtags',
-            foreignField: '_id',
-            as: 'hashtags'
-          }
-        },
-        {
-          $lookup: {
-            from: 'Users',
-            localField: 'mentions',
-            foreignField: '_id',
-            as: 'mentions'
-          }
-        },
-        {
-          $addFields: {
-            mentions: {
-              $map: {
-                input: '$mentions',
-                as: 'mention',
-                in: {
-                  _id: '$$mention._id',
-                  name: '$$mention.name',
-                  email: '$$mention.email',
-                  username: '$$mention.username',
-                  avatar: '$$mention.avatar'
-                }
-              }
-            }
-          }
-        },
-        {
-          $lookup: {
-            from: 'Bookmarks',
-            localField: '_id',
-            foreignField: 'tweet_id',
-            as: 'bookmarks'
-          }
-        },
+
         {
           $lookup: {
             from: 'Likes',
@@ -120,23 +59,10 @@ class TweetsService {
         },
         {
           $addFields: {
-            bookmarks: {
-              $size: '$bookmarks'
-            },
             likes: {
               $size: '$likes'
             },
-            retweet: {
-              $size: {
-                $filter: {
-                  input: '$tweet_child',
-                  as: 'item',
-                  cond: {
-                    $eq: ['$$item.type', TweetTypeEnum.Retweet]
-                  }
-                }
-              }
-            },
+
             comment: {
               $size: {
                 $filter: {
@@ -144,17 +70,6 @@ class TweetsService {
                   as: 'item',
                   cond: {
                     $eq: ['$$item.type', TweetTypeEnum.Comment]
-                  }
-                }
-              }
-            },
-            quote_tweet: {
-              $size: {
-                $filter: {
-                  input: '$tweet_child',
-                  as: 'item',
-                  cond: {
-                    $eq: ['$$item.type', TweetTypeEnum.QuoteTweet]
                   }
                 }
               }
@@ -207,27 +122,13 @@ class TweetsService {
   }
 
   async getNewsFeed(userId: string, limit: number, page: number) {
-    const listFollower = await db.followers
-      .find(
-        { user_id: new ObjectId(userId) },
-        {
-          projection: {
-            followed_user_id: 1,
-            _id: 0
-          }
-        }
-      )
-      .toArray();
-    const listUserId = listFollower.map((follower) => follower.followed_user_id);
-    listUserId.push(new ObjectId(userId));
-
     const [result, count] = await Promise.all([
       db.tweets
         .aggregate<Tweet>([
           {
             $match: {
               user_id: {
-                $in: listUserId
+                $in: [] //ID LỚP HỌC
               }
             }
           },
@@ -244,80 +145,7 @@ class TweetsService {
               path: '$user'
             }
           },
-          {
-            $match: {
-              $or: [
-                {
-                  audience: 0
-                },
-                {
-                  $and: [
-                    {
-                      audience: 1
-                    },
-                    {
-                      'user.twitter_circle': {
-                        $in: [new ObjectId(userId)]
-                      }
-                    }
-                  ]
-                },
-                {
-                  $and: [
-                    {
-                      audience: 1
-                    },
-                    {
-                      'user._id': {
-                        $in: [new ObjectId(userId)]
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            $lookup: {
-              from: 'Hashtags',
-              localField: 'hashtags',
-              foreignField: '_id',
-              as: 'hashtags'
-            }
-          },
-          {
-            $lookup: {
-              from: 'Users',
-              localField: 'mentions',
-              foreignField: '_id',
-              as: 'mentions'
-            }
-          },
-          {
-            $addFields: {
-              mentions: {
-                $map: {
-                  input: '$mentions',
-                  as: 'mention',
-                  in: {
-                    _id: '$$mention._id',
-                    name: '$$mention.name',
-                    email: '$$mention.email',
-                    username: '$$mention.username',
-                    avatar: '$$mention.avatar'
-                  }
-                }
-              }
-            }
-          },
-          {
-            $lookup: {
-              from: 'Bookmarks',
-              localField: '_id',
-              foreignField: 'tweet_id',
-              as: 'bookmarks'
-            }
-          },
+
           {
             $lookup: {
               from: 'Likes',
@@ -336,23 +164,10 @@ class TweetsService {
           },
           {
             $addFields: {
-              bookmarks: {
-                $size: '$bookmarks'
-              },
               likes: {
                 $size: '$likes'
               },
-              retweet: {
-                $size: {
-                  $filter: {
-                    input: '$tweet_child',
-                    as: 'item',
-                    cond: {
-                      $eq: ['$$item.type', TweetTypeEnum.Retweet]
-                    }
-                  }
-                }
-              },
+
               comment: {
                 $size: {
                   $filter: {
@@ -360,17 +175,6 @@ class TweetsService {
                     as: 'item',
                     cond: {
                       $eq: ['$$item.type', TweetTypeEnum.Comment]
-                    }
-                  }
-                }
-              },
-              quote_tweet: {
-                $size: {
-                  $filter: {
-                    input: '$tweet_child',
-                    as: 'item',
-                    cond: {
-                      $eq: ['$$item.type', TweetTypeEnum.QuoteTweet]
                     }
                   }
                 }
@@ -385,8 +189,7 @@ class TweetsService {
                 created_at: 0,
                 emailVerifyToken: 0,
                 forgotPasswordToken: 0,
-                updated_at: 0,
-                twitter_circle: 0
+                updated_at: 0
               }
             }
           },
@@ -403,7 +206,7 @@ class TweetsService {
           {
             $match: {
               user_id: {
-                $in: listUserId
+                $in: [] //ID LỚP HỌC
               }
             }
           },
@@ -420,80 +223,7 @@ class TweetsService {
               path: '$user'
             }
           },
-          {
-            $match: {
-              $or: [
-                {
-                  audience: 0
-                },
-                {
-                  $and: [
-                    {
-                      audience: 1
-                    },
-                    {
-                      'user.twitter_circle': {
-                        $in: [new ObjectId(userId)]
-                      }
-                    }
-                  ]
-                },
-                {
-                  $and: [
-                    {
-                      audience: 1
-                    },
-                    {
-                      'user._id': {
-                        $in: [new ObjectId(userId)]
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          },
-          {
-            $lookup: {
-              from: 'Hashtags',
-              localField: 'hashtags',
-              foreignField: '_id',
-              as: 'hashtags'
-            }
-          },
-          {
-            $lookup: {
-              from: 'Users',
-              localField: 'mentions',
-              foreignField: '_id',
-              as: 'mentions'
-            }
-          },
-          {
-            $addFields: {
-              mentions: {
-                $map: {
-                  input: '$mentions',
-                  as: 'mention',
-                  in: {
-                    _id: '$$mention._id',
-                    name: '$$mention.name',
-                    email: '$$mention.email',
-                    username: '$$mention.username',
-                    avatar: '$$mention.avatar'
-                  }
-                }
-              }
-            }
-          },
-          {
-            $lookup: {
-              from: 'Bookmarks',
-              localField: '_id',
-              foreignField: 'tweet_id',
-              as: 'bookmarks'
-            }
-          },
+
           {
             $lookup: {
               from: 'Likes',
@@ -512,23 +242,10 @@ class TweetsService {
           },
           {
             $addFields: {
-              bookmarks: {
-                $size: '$bookmarks'
-              },
               likes: {
                 $size: '$likes'
               },
-              retweet: {
-                $size: {
-                  $filter: {
-                    input: '$tweet_child',
-                    as: 'item',
-                    cond: {
-                      $eq: ['$$item.type', TweetTypeEnum.Retweet]
-                    }
-                  }
-                }
-              },
+
               comment: {
                 $size: {
                   $filter: {
@@ -536,17 +253,6 @@ class TweetsService {
                     as: 'item',
                     cond: {
                       $eq: ['$$item.type', TweetTypeEnum.Comment]
-                    }
-                  }
-                }
-              },
-              quote_tweet: {
-                $size: {
-                  $filter: {
-                    input: '$tweet_child',
-                    as: 'item',
-                    cond: {
-                      $eq: ['$$item.type', TweetTypeEnum.QuoteTweet]
                     }
                   }
                 }
@@ -561,8 +267,7 @@ class TweetsService {
                 created_at: 0,
                 emailVerifyToken: 0,
                 forgotPasswordToken: 0,
-                updated_at: 0,
-                twitter_circle: 0
+                updated_at: 0
               }
             }
           },

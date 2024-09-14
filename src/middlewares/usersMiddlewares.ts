@@ -350,10 +350,7 @@ export const updateMeValidator = validate(
       optional: true,
       isString: { errorMessage: 'Location must be a string' }
     },
-    website: {
-      optional: true,
-      isURL: { errorMessage: 'Website must be a URL' }
-    },
+
     username: {
       optional: true,
       isString: { errorMessage: 'Username must be a string' },
@@ -398,46 +395,6 @@ export const getProfileValidator = validate(
             });
           }
           req.body.user = result;
-          return true;
-        }
-      }
-    }
-  })
-);
-
-export const followValidator = validate(
-  checkSchema({
-    userId: {
-      notEmpty: { errorMessage: 'userId must not be empty' },
-      custom: {
-        options: async (value, { req }) => {
-          const user = await usersService.checkUserIdExists(value);
-          if (!user) {
-            throw new ErrorWithStatus({
-              status: httpStatus.NOT_FOUND,
-              message: 'User not found'
-            });
-          }
-          return true;
-        }
-      }
-    }
-  })
-);
-
-export const unfollowValidator = validate(
-  checkSchema({
-    userId: {
-      notEmpty: { errorMessage: 'userId must not be empty' },
-      custom: {
-        options: async (value, { req }) => {
-          const user = await usersService.checkUserIdExists(value);
-          if (!user) {
-            throw new ErrorWithStatus({
-              status: httpStatus.NOT_FOUND,
-              message: 'User not found'
-            });
-          }
           return true;
         }
       }

@@ -6,7 +6,6 @@ import { env } from '~/constants/config';
 import {
   AddUsersToCircleRequest,
   ChangePasswordRequest,
-  FollowRequest,
   ForgotPasswordRequest,
   GetMeRequest,
   LoginRequest,
@@ -15,7 +14,6 @@ import {
   RegisterRequest,
   ResendVerifyEmailRequest,
   ResetPasswordRequest,
-  UnfollowRequest,
   UpdateMeRequest,
   VerifyEmailRequest
 } from '~/models/requests/UserRequests';
@@ -126,24 +124,10 @@ export const updateMeController = async (req: Request<ParamsDictionary, any, Upd
 };
 
 export const getProfileController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
-  const { _id, name, email, date_of_birth, bio, location, website, username, avatar, cover_photo } = req.body.user;
+  const { _id, name, email, date_of_birth, bio, location, username, avatar, cover_photo } = req.body.user;
   res.status(200).json({
-    result: { _id, name, email, date_of_birth, bio, location, website, username, avatar, cover_photo },
+    result: { _id, name, email, date_of_birth, bio, location, username, avatar, cover_photo },
     message: 'Get profile sucess'
-  });
-};
-
-export const followController = async (req: Request<ParamsDictionary, any, FollowRequest>, res: Response) => {
-  const result = await userService.follow(req.body);
-  res.status(200).json({
-    message: 'Follow sucess'
-  });
-};
-
-export const unfollowController = async (req: Request<ParamsDictionary, any, UnfollowRequest>, res: Response) => {
-  const result = await userService.unfollow(req.body);
-  res.status(200).json({
-    message: 'Unfollow sucess'
   });
 };
 
@@ -155,16 +139,5 @@ export const changePasswordController = async (
   res.status(200).json({
     result,
     message: 'Change Password sucess'
-  });
-};
-
-export const setUserCircleController = async (
-  req: Request<ParamsDictionary, any, AddUsersToCircleRequest>,
-  res: Response
-) => {
-  const result = await userService.setUserCircle(req.body);
-  res.status(200).json({
-    result,
-    message: 'Set Users Circle sucess'
   });
 };

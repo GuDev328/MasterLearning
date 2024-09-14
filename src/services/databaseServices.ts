@@ -1,7 +1,5 @@
 import { Collection, Db, MongoClient, ServerApiVersion } from 'mongodb';
 import User from '~/models/schemas/UserSchema';
-import Follower from '~/models/schemas/FollowerSchema';
-import Hashtag from '~/models/schemas/HashtagSchema';
 import Like from '~/models/schemas/LikeSchema';
 import { RefreshToken } from '~/models/schemas/RefreshTokenSchema';
 import Tweet from '~/models/schemas/TweetSchema';
@@ -52,12 +50,6 @@ class DatabaseServices {
     return this.db.collection('Users');
   }
 
-  get followers(): Collection<Follower> {
-    return this.db.collection('Followers');
-  }
-  get hashtags(): Collection<Hashtag> {
-    return this.db.collection('Hashtags');
-  }
   get likes(): Collection<Like> {
     return this.db.collection('Likes');
   }

@@ -20,15 +20,10 @@ export enum MediaType {
   Video,
   VideoHLS
 }
-export enum TweetAudience {
-  Everyone, // 0
-  TwitterCircle // 1
-}
+
 export enum TweetTypeEnum {
   Tweet,
-  Retweet,
-  Comment,
-  QuoteTweet
+  Comment
 }
 
 export enum SendEmail {

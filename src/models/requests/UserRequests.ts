@@ -54,20 +54,10 @@ export interface UpdateMeRequest {
   date_of_birth?: string;
   bio?: string;
   location?: string;
-  website?: string;
+
   username?: string;
   avatar?: string;
   cover_photo?: string;
-}
-
-export interface FollowRequest {
-  decodeAuthorization: JwtPayload;
-  userId: string;
-}
-
-export interface UnfollowRequest {
-  decodeAuthorization: JwtPayload;
-  userId: string;
 }
 
 export interface ChangePasswordRequest {
