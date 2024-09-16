@@ -43,7 +43,6 @@ router.post('/refresh-token', refreshTokenValidator, catchError(refreshTokenCont
 router.post('/verify-email', accessTokenValidator, verifyEmailValidator, catchError(verifyEmailController));
 router.post('/resend-verify-email', accessTokenValidator, catchError(resendVerifyEmailController));
 router.post('/forgot-password', forgotPasswordValidator, catchError(forgotPasswordController));
-router.post('/verify-forgot-password', verifyForgotPasswordValidator, catchError(verifyForgotPasswordController));
 router.post(
   '/reset-password',
   resetPasswordValidator,
@@ -56,21 +55,12 @@ router.patch(
   accessTokenValidator,
   verifiedUserValidator,
   updateMeValidator,
-  filterMiddleware<UpdateMeRequest>([
-    'decodeAuthorization',
-    'name',
-    'date_of_birth',
-    'bio',
-    'location',
-    'username',
-    'avatar',
-    'cover_photo'
-  ]),
+  filterMiddleware<UpdateMeRequest>(['decodeAuthorization', 'name', 'date_of_birth', 'avatar']),
   catchError(updateMeController)
 );
 
 router.get(
-  '/get-profile/:username',
+  '/get-profile/:id',
   getProfileValidator,
   accessTokenValidator,
   verifiedUserValidator,

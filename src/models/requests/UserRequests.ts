@@ -1,12 +1,14 @@
 import { JwtPayload } from 'jsonwebtoken';
 import User from '../schemas/UserSchema';
+import { UserRole } from '~/constants/enum';
 
 export interface RegisterRequest {
   name: string;
   email: string;
+  avatar?: string;
   password: string;
+  role: UserRole;
   confirmPassword: string;
-  username: string;
   date_of_birth: string;
 }
 
@@ -52,12 +54,7 @@ export interface UpdateMeRequest {
   decodeAuthorization: JwtPayload;
   name?: string;
   date_of_birth?: string;
-  bio?: string;
-  location?: string;
-
-  username?: string;
   avatar?: string;
-  cover_photo?: string;
 }
 
 export interface ChangePasswordRequest {

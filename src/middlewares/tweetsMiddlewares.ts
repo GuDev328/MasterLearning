@@ -1,8 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { body, checkSchema } from 'express-validator';
-import { request } from 'http';
-import { JwtPayload } from 'jsonwebtoken';
-import { isEmpty } from 'lodash';
 import { ObjectId } from 'mongodb';
 import { TokenType, TweetTypeEnum, MediaType, UserVerifyStatus, Media } from '~/constants/enum';
 import { httpStatus } from '~/constants/httpStatus';

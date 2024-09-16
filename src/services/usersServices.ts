@@ -16,24 +16,25 @@ import bcrypt from 'bcrypt';
 import User from '~/models/schemas/UserSchema';
 import db from '~/services/databaseServices';
 import { signToken, verifyToken } from '~/utils/jwt';
-import { SendEmail, TokenType, UserVerifyStatus } from '~/constants/enum';
+import { SendEmail, TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
 import { ErrorWithStatus } from '~/models/Errors';
 import { RefreshToken } from '~/models/schemas/RefreshTokenSchema';
 import { ObjectId } from 'mongodb';
 import { JwtPayload } from 'jsonwebtoken';
 import { httpStatus } from '~/constants/httpStatus';
-import { sendVerifyEmail } from '~/utils/email';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
 import { env } from '~/constants/config';
+import { sendVerifyEmail } from './emailServices';
 
 class UsersService {
   constructor() {}
-  signAccessToken(userId: string, verify: UserVerifyStatus) {
+  signAccessToken(userId: string, role: UserRole, verify: UserVerifyStatus) {
     return signToken(
       {
         payload: {
           userId,
+          role,
           type: TokenType.AccessToken,
           verify
         }
@@ -44,11 +45,12 @@ class UsersService {
     );
   }
 
-  signRefreshToken(userId: string, verify: UserVerifyStatus, expiresIn?: number) {
+  signRefreshToken(userId: string, role: UserRole, verify: UserVerifyStatus, expiresIn?: number) {
     return signToken(
       {
         payload: {
           userId,
+          role,
           type: TokenType.RefreshToken,
           verify
         }
@@ -85,11 +87,23 @@ class UsersService {
         message: 'Email not found'
       });
     } else {
+      if (user.verify === UserVerifyStatus.Unverified) {
+        throw new ErrorWithStatus({
+          status: httpStatus.UNAUTHORIZED,
+          message: 'Tài khoản chưa được xác nhận. Vui lòng xác nhận email để đăng nhập.'
+        });
+      }
+      if (user.verify === UserVerifyStatus.Banned) {
+        throw new ErrorWithStatus({
+          status: httpStatus.UNAUTHORIZED,
+          message: 'Tài khoản đã bị khóa. Vui lòng liên hệ với quản trị để xác nhận.'
+        });
+      }
       const checkPassword = await bcrypt.compareSync(payload.password, user.password);
       if (checkPassword) {
         const [accessToken, refreshToken] = await Promise.all([
-          this.signAccessToken(user._id.toString(), user.verify),
-          this.signRefreshToken(user._id.toString(), user.verify)
+          this.signAccessToken(user._id.toString(), user.role, user.verify),
+          this.signRefreshToken(user._id.toString(), user.role, user.verify)
         ]);
 
         const saveRefreshToken = await db.refreshTokens.insertOne(
@@ -156,8 +170,8 @@ class UsersService {
 
     if (userInDb) {
       const [accessToken, refreshToken] = await Promise.all([
-        this.signAccessToken(userInDb._id.toString(), userInDb.verify),
-        this.signRefreshToken(userInDb._id.toString(), userInDb.verify)
+        this.signAccessToken(userInDb._id.toString(), userInDb.role, userInDb.verify),
+        this.signRefreshToken(userInDb._id.toString(), userInDb.role, userInDb.verify)
       ]);
       await db.refreshTokens.insertOne(
         new RefreshToken({
@@ -173,15 +187,18 @@ class UsersService {
       };
     } else {
       const randomPassword = nanoid(10);
-      const usernameRandom = googleUserInfo.name.replace(/\s/g, '') + new Date().getTime() + nanoid(5);
-      const { accessToken, refreshToken } = await this.register({
-        name: googleUserInfo.name,
-        email: googleUserInfo.email,
-        password: randomPassword,
-        confirmPassword: randomPassword,
-        username: usernameRandom,
-        date_of_birth: new Date().toISOString()
-      });
+      const { accessToken, refreshToken } = await this.register(
+        {
+          name: googleUserInfo.name,
+          email: googleUserInfo.email,
+          avatar: googleUserInfo.picture,
+          password: randomPassword,
+          role: UserRole.Undefined,
+          confirmPassword: randomPassword,
+          date_of_birth: new Date().toISOString()
+        },
+        false
+      );
       return {
         accessToken,
         refreshToken,
@@ -190,20 +207,21 @@ class UsersService {
     }
   }
 
-  async register(payload: RegisterRequest) {
+  async register(payload: RegisterRequest, isNotOauth: boolean = true) {
     const saltRounds = 10;
     payload.password = await bcrypt.hashSync(payload.password, saltRounds);
 
     const result = await db.users.insertOne(
       new User({
         ...payload,
+        verify: isNotOauth ? UserVerifyStatus.Unverified : UserVerifyStatus.Verified,
         date_of_birth: new Date(payload.date_of_birth)
       })
     );
     const userId = result.insertedId.toString();
     const [accessToken, refreshToken, emailVerifyToken] = await Promise.all([
-      this.signAccessToken(userId, UserVerifyStatus.Unverified),
-      this.signRefreshToken(userId, UserVerifyStatus.Unverified),
+      this.signAccessToken(userId, payload.role, isNotOauth ? UserVerifyStatus.Unverified : UserVerifyStatus.Verified),
+      this.signRefreshToken(userId, payload.role, isNotOauth ? UserVerifyStatus.Unverified : UserVerifyStatus.Verified),
       this.signEmailVerifyToken(userId)
     ]);
     const saveRefreshToken = await db.refreshTokens.insertOne(
@@ -218,7 +236,7 @@ class UsersService {
       { _id: new ObjectId(userId) },
       { $set: { emailVerifyToken: emailVerifyToken } }
     );
-    await sendVerifyEmail(payload.email, emailVerifyToken, SendEmail.VerifyEmail);
+    isNotOauth && sendVerifyEmail(payload.email, emailVerifyToken, SendEmail.VerifyEmail);
     return {
       accessToken,
       refreshToken
@@ -229,9 +247,14 @@ class UsersService {
     const oldToken = await db.refreshTokens.deleteOne({ token: payload.refreshToken });
     const refreshTokenEXP = (payload.decodeRefreshToken.exp as number) - Math.floor(Date.now() / 1000);
     const [accessToken, refreshToken] = await Promise.all([
-      this.signAccessToken(payload.decodeRefreshToken.payload.userId, payload.decodeRefreshToken.payload.verify),
+      this.signAccessToken(
+        payload.decodeRefreshToken.payload.userId,
+        payload.decodeRefreshToken.payload.role,
+        payload.decodeRefreshToken.payload.verify
+      ),
       this.signRefreshToken(
         payload.decodeRefreshToken.payload.userId,
+        payload.decodeRefreshToken.payload.role,
         payload.decodeRefreshToken.payload.verify,
         refreshTokenEXP
       )

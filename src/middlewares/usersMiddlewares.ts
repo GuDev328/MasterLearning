@@ -130,21 +130,6 @@ export const registerValidator = validate(
           }
         }
       },
-      username: {
-        notEmpty: {
-          errorMessage: 'Missing required username'
-        },
-        trim: true,
-        custom: {
-          options: async (value: string) => {
-            const result = await usersService.checkUsernameExists(value);
-            if (result) {
-              throw new Error('Username already exists');
-            }
-            return true;
-          }
-        }
-      },
       password: {
         notEmpty: {
           errorMessage: 'Missing required password'
@@ -338,44 +323,10 @@ export const updateMeValidator = validate(
       optional: true,
       isISO8601: { options: { strict: true, strictSeparator: true } }
     },
-    bio: {
-      optional: true,
-      isString: { errorMessage: 'Bio must be a string' },
-      isLength: {
-        options: { min: 1, max: 200 },
-        errorMessage: 'Length of bio must be between 1 and 200'
-      }
-    },
-    location: {
-      optional: true,
-      isString: { errorMessage: 'Location must be a string' }
-    },
 
-    username: {
-      optional: true,
-      isString: { errorMessage: 'Username must be a string' },
-      isLength: {
-        options: { min: 1, max: 25 },
-        errorMessage: 'Length of username must be between 1 and 200'
-      },
-      custom: {
-        options: async (value: string) => {
-          const result = await usersService.checkUsernameExists(value);
-          if (result) {
-            throw new Error('Username already exists');
-          }
-          return true;
-        }
-      }
-    },
     avatar: {
       optional: true,
       isURL: { errorMessage: 'Avatar must be a URL' },
-      trim: true
-    },
-    cover_photo: {
-      optional: true,
-      isURL: { errorMessage: 'Cover photo must be a URL' },
       trim: true
     }
   })
@@ -383,18 +334,18 @@ export const updateMeValidator = validate(
 
 export const getProfileValidator = validate(
   checkSchema({
-    username: {
-      isString: { errorMessage: 'Username must be a string' },
+    id: {
+      isString: { errorMessage: 'Id must be a string' },
       custom: {
         options: async (value: string, { req }) => {
-          const result = await usersService.checkUsernameExists(value);
-          if (!result) {
+          if (!ObjectId.isValid(value)) {
             throw new ErrorWithStatus({
-              message: 'User not found',
-              status: httpStatus.NOT_FOUND
+              message: 'Invalid id',
+              status: httpStatus.BAD_REQUEST
             });
           }
-          req.body.user = result;
+          const user = await db.users.findOne({ _id: new ObjectId(value) });
+          req.body.user = user;
           return true;
         }
       }

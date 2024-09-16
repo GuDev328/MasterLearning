@@ -124,9 +124,9 @@ export const updateMeController = async (req: Request<ParamsDictionary, any, Upd
 };
 
 export const getProfileController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
-  const { _id, name, email, date_of_birth, bio, location, username, avatar, cover_photo } = req.body.user;
+  const { _id, name, email, date_of_birth, avatar } = req.body.user;
   res.status(200).json({
-    result: { _id, name, email, date_of_birth, bio, location, username, avatar, cover_photo },
+    result: { _id, name, email, date_of_birth, avatar },
     message: 'Get profile sucess'
   });
 };

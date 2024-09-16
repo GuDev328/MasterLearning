@@ -4,6 +4,13 @@ export enum UserVerifyStatus {
   Banned
 }
 
+export enum UserRole {
+  Undefined,
+  Student,
+  Teacher,
+  Admin
+}
+
 export enum TokenType {
   AccessToken,
   RefreshToken,

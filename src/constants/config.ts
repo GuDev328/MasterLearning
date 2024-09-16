@@ -24,6 +24,9 @@ export const env = {
   googleRedirectURI: process.env.GOOGLE_REDIRECT_URI as string,
   clientRedirectCallback: process.env.CLIENT_REDIRECT_CALLBACK as string,
 
+  emailAppPassword: process.env.EMAIL_APP_PASSWORD as string,
+  emailApp: process.env.EMAIL_APP as string,
+
   AWSAccessKeyID: process.env.AWS_ACCESS_KEY_ID as string,
   AWSSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
   AWSRegion: process.env.AWS_REGION as string,
