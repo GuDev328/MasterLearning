@@ -4,6 +4,7 @@ import usersRouters from '~/routers/usersRouters';
 import mediasRouters from '~/routers/mediasRouters';
 import tweetsRouters from '~/routers/tweetsRouters';
 import likesRouters from '~/routers/likesRouters';
+import classRouters from '~/routers/classRouters';
 import conversationsRouters from '~/routers/conversationsRouters';
 import db from './services/databaseServices';
 import { defaultsErrorHandler } from './middlewares/errorsMiddlewares';
@@ -42,6 +43,7 @@ app.use('/users', usersRouters);
 app.use('/medias', mediasRouters);
 app.use('/tweets', tweetsRouters);
 app.use('/likes', likesRouters);
+app.use('/classes',classRouters );
 app.use('/conversations', conversationsRouters);
 app.use(defaultsErrorHandler);
 
