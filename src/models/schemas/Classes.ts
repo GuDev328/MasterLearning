@@ -6,6 +6,7 @@ interface ClassesType {
   type: ClassTypeEnum;
   name: string;
   description:string;
+  password:string;
   topic:string;
   code:string;
   created_at?: Date;
@@ -19,17 +20,19 @@ export default class Classes {
     description:string;
     topic:string;
     code:string;
+    password:string;
     created_at?: Date;
     updated_at?: Date;
 
-  constructor(tweet: ClassesType) {
-    this._id = tweet._id || new ObjectId();
-    this.name = tweet.name || '';
-    this.type = tweet.type || ClassTypeEnum.Public;
-    this.description = tweet.description || '';
-    this.topic = tweet.topic || ''; 
-    this.code = tweet.code || '';
-    this.created_at = tweet.created_at || new Date();
-    this.updated_at = tweet.updated_at || new Date();
+  constructor(classes: ClassesType) {
+    this._id = classes._id || new ObjectId();
+    this.name = classes.name || '';
+    this.type = classes.type || ClassTypeEnum.Public;
+    this.description = classes.description || '';
+    this.topic = classes.topic || ''; 
+    this.password = classes.password || ''; 
+    this.code = classes.code || '';
+    this.created_at = classes.created_at || new Date();
+    this.updated_at = classes.updated_at || new Date();
   }
 }

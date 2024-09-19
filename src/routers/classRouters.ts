@@ -1,17 +1,18 @@
 import { Router } from "express";
 import { acceptMemberClassController, createClassController, findClassByCodeController, getClassAcceptController, getClassController, getClassPendingController, joinMemberClassController } from "~/controllers/classControllers";
+import { accessTokenValidator } from "~/middlewares/usersMiddlewares";
 import { catchError } from "~/utils/handler";
 
 const router = Router();
 
 router.post(
-    '/create',catchError(createClassController)
+    '/create',accessTokenValidator,catchError(createClassController)
   );
   router.post(
-    '/join-class',catchError(joinMemberClassController)
+    '/join-class',accessTokenValidator,catchError(joinMemberClassController)
   );
   router.post(
-    '/accept-class',catchError(acceptMemberClassController)
+    '/accept-class',accessTokenValidator,catchError(acceptMemberClassController)
   );
   router.post(
     '/get-member-pending',catchError(getClassPendingController)

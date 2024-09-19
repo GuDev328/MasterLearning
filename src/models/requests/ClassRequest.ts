@@ -1,3 +1,4 @@
+import { JwtPayload } from "jsonwebtoken";
 import { ObjectId } from "mongodb";
 import { ClassTypeEnum, MemberClassTypeEnum } from "~/constants/enum";
 
@@ -6,15 +7,16 @@ export interface ClassRequest {
     name: string;
     description:string;
     topic:string;
+    password:string;
     code:string;
   }
   export interface AcceptClassRequest {
     id: ObjectId;
   }
   export interface jointClassRequest {
-    userId: ObjectId;
+    decodeAuthorization: JwtPayload;
     classId: ObjectId;
-    status:MemberClassTypeEnum
+    password:string;
   }
   export interface findClassPending {
     classId: ObjectId;

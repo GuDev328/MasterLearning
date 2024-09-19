@@ -20,7 +20,7 @@ export const createClassController = async (req: Request<any, any, ClassRequest>
     const result = await ClassesService.jointMemberClass(req.body);
     res.status(200).json({
       result,
-      message: 'Create new classes suscess'
+      message: 'Join classes suscess'
     });
   };
   export const getClassPendingController = async (req: Request<any, any, findClassPending>, res: Response) => {
