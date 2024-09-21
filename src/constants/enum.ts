@@ -17,14 +17,14 @@ export enum TokenType {
   FogotPasswordToken,
   VerifyEmailToken
 }
-export enum ClassTypeEnum{
-  Public='Public',
-  Pending='Pending',
-  Security='Security'
+export enum ClassTypeEnum {
+  Public = 'Public',
+  Private = 'Private',
+  Security = 'Security'
 }
-export enum MemberClassTypeEnum{
-  Pending='Pending',
-  Accept='Accept' 
+export enum MemberClassTypeEnum {
+  Pending = 'Pending',
+  Accept = 'Accept'
 }
 export interface Media {
   url: string;
