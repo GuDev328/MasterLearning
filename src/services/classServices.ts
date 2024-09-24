@@ -10,7 +10,6 @@ import { httpStatus } from "~/constants/httpStatus";
 class ClassesService {
     constructor() {}
     async createNewClass(payload: ClassRequest){
-       try{
         if (!Object.values(ClassTypeEnum).includes(payload.type)) {
             throw new ErrorWithStatus({
                 message: 'Type not found',
@@ -44,8 +43,6 @@ class ClassesService {
           });
           const createClass = await db.classes.insertOne(classes);
           return createClass.insertedId;
-       }catch(err){
-       }
     }
     async acceptMemberClass(payload:AcceptClassRequest){
         const member = await db.members.findOne({
