@@ -15,7 +15,7 @@ router.post(
     '/accept-class',accessTokenValidator,catchError(acceptMemberClassController)
   );
   router.post(
-    '/get-member-pending',catchError(getClassPendingController)
+    '/get-member-pending',accessTokenValidator,catchError(getClassPendingController)
   );
   router.post(
     '/get-member-accept',catchError(getClassAcceptController)
