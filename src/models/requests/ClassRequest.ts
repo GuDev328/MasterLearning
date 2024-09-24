@@ -4,6 +4,7 @@ import { ClassTypeEnum, MemberClassTypeEnum } from '~/constants/enum';
 
 export interface ClassRequest {
   type: ClassTypeEnum;
+  decodeAuthorization: JwtPayload;
   name: string;
   description: string;
   topic: string;
@@ -11,6 +12,7 @@ export interface ClassRequest {
   code: string;
 }
 export interface AcceptClassRequest {
+  decodeAuthorization: JwtPayload;
   id: ObjectId;
 }
 export interface jointClassRequest {
@@ -19,16 +21,13 @@ export interface jointClassRequest {
   password: string;
 }
 export interface findClassPending {
+  decodeAuthorization: JwtPayload;
   classId: ObjectId;
 }
 export interface findClassAccept {
+  decodeAuthorization: JwtPayload;
   classId: ObjectId;
 }
 export interface findClassCode {
   code: string;
-}
-
-export interface GetMeetingTokenRequest {
-  decodeAuthorization: JwtPayload;
-  classId: string;
 }

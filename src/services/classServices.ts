@@ -4,7 +4,6 @@ import {
   findClassAccept,
   findClassCode,
   findClassPending,
-  GetMeetingTokenRequest,
   jointClassRequest
 } from '~/models/requests/ClassRequest';
 import Classes from '~/models/schemas/Classes';
@@ -14,41 +13,43 @@ import Members from '~/models/schemas/MemberClasses';
 import { ObjectId } from 'mongodb';
 import { ErrorWithStatus } from '~/models/Errors';
 import { httpStatus } from '~/constants/httpStatus';
-import { env } from '~/constants/config';
-import { RtcRole, RtcTokenBuilder } from 'agora-token';
-import User from '~/models/schemas/UserSchema';
 
 class ClassesService {
   constructor() {}
   async createNewClass(payload: ClassRequest) {
-    try {
-      if (!Object.values(ClassTypeEnum).includes(payload.type)) {
+    if (!Object.values(ClassTypeEnum).includes(payload.type)) {
+      throw new ErrorWithStatus({
+        message: 'Type not found',
+        status: httpStatus.BAD_REQUEST
+      });
+    }
+    const generateCode = () => {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let code = '';
+      for (let i = 0; i < 5; i++) {
+        code += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      return code;
+    };
+    if (payload.type == ClassTypeEnum.Security) {
+      if (payload.password == '' || !payload.password) {
         throw new ErrorWithStatus({
-          message: 'Type not found',
+          message: 'require password',
           status: httpStatus.BAD_REQUEST
         });
       }
-      const generateCode = () => {
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let code = '';
-        for (let i = 0; i < 5; i++) {
-          code += characters.charAt(Math.floor(Math.random() * characters.length));
-        }
-        return code;
-      };
-      const classes = new Classes({
-        name: payload.name,
-        type: payload.type,
-        description: payload.description,
-        topic: payload.topic,
-        password: payload.password,
-        code: generateCode()
-      });
-      const createClass = await db.classes.insertOne(classes);
-      return createClass.insertedId;
-    } catch (err) {
-      console.log(err);
     }
+    const classes = new Classes({
+      name: payload.name,
+      type: payload.type,
+      teacher_id: payload.decodeAuthorization.payload.userId,
+      description: payload.description,
+      topic: payload.topic,
+      password: payload.password,
+      code: generateCode()
+    });
+    const createClass = await db.classes.insertOne(classes);
+    return createClass.insertedId;
   }
   async acceptMemberClass(payload: AcceptClassRequest) {
     const member = await db.members.findOne({
@@ -61,6 +62,16 @@ class ClassesService {
         status: httpStatus.BAD_REQUEST
       });
     } else {
+      const classes = await db.classes.findOne({
+        _id: new ObjectId(member.class_id),
+        teacher_id: payload.decodeAuthorization.payload.userId
+      });
+      if (!classes) {
+        throw new ErrorWithStatus({
+          message: 'the teacher not right',
+          status: httpStatus.BAD_REQUEST
+        });
+      }
       const updateMember = await db.members.updateOne(
         {
           _id: new ObjectId(payload.id)
@@ -74,11 +85,9 @@ class ClassesService {
     }
   }
   async jointMemberClass(payload: jointClassRequest) {
-    console.log('check pay', payload);
     const userId = new ObjectId(payload.decodeAuthorization.payload.userId);
     const classId = new ObjectId(payload.classId);
     const user = await db.users.findOne({ _id: userId });
-    console.log('user', user);
     if (!user) {
       throw new ErrorWithStatus({
         message: 'User not found',
@@ -88,11 +97,17 @@ class ClassesService {
 
     // Tìm class
     const classes = await db.classes.findOne({ _id: classId });
-    console.log('classes', classes);
 
     if (!classes) {
       throw new ErrorWithStatus({
         message: 'Class not found',
+        status: httpStatus.BAD_REQUEST
+      });
+    }
+    const studentExits = await db.members.findOne({ user_id: userId, class_id: classId });
+    if (studentExits) {
+      throw new ErrorWithStatus({
+        message: 'User exits',
         status: httpStatus.BAD_REQUEST
       });
     }
@@ -104,7 +119,7 @@ class ClassesService {
       });
       const createClass = await db.members.insertOne(member);
       return createClass.insertedId;
-    } else if (classes.type == ClassTypeEnum.Private) {
+    } else if (classes.type == ClassTypeEnum.Pending) {
       const member = new Members({
         user_id: userId,
         class_id: classId,
@@ -125,16 +140,26 @@ class ClassesService {
           status: MemberClassTypeEnum.Accept
         });
         const createClass = await db.members.insertOne(member);
-        console.log('crea', createClass);
         return createClass.insertedId;
       }
     }
   }
   async getClassPendingClass(payload: findClassPending) {
-    const member = await db.members
-      .find({ class_id: new ObjectId(payload.classId), status: MemberClassTypeEnum.Pending })
-      .toArray();
-    return member;
+    const classes = await db.classes.findOne({
+      _id: new ObjectId(payload.classId),
+      teacher_id: payload.decodeAuthorization.payload.userId
+    });
+    if (classes) {
+      const member = await db.members
+        .find({ class_id: new ObjectId(payload.classId), status: MemberClassTypeEnum.Pending })
+        .toArray();
+      return member;
+    } else {
+      throw new ErrorWithStatus({
+        message: 'u cant get',
+        status: httpStatus.BAD_REQUEST
+      });
+    }
   }
   async getClassAcceptClass(payload: findClassAccept) {
     const member = await db.members
@@ -145,43 +170,6 @@ class ClassesService {
   async getClassbyCode(payload: findClassCode) {
     const member = await db.classes.findOne({ code: payload.code });
     return member;
-  }
-
-  async getMeetingToken(payload: GetMeetingTokenRequest) {
-    if (!payload.classId) {
-      throw new ErrorWithStatus({
-        message: 'Cần cung cấp classId',
-        status: httpStatus.BAD_REQUEST
-      });
-    }
-    const classId = payload.classId;
-    const userId = new ObjectId(payload.decodeAuthorization.payload.userId);
-    const user = await db.users.findOne({ _id: userId });
-    // const member = await db.members.findOne({ user_id: userId, class_id: classId });
-    // if (!member) {
-    //   throw new ErrorWithStatus({
-    //     message: 'Bạn không thuộc về lớp này',
-    //     status: httpStatus.BAD_REQUEST
-    //   });
-    // }
-
-    const appId = env.AgoraAppId;
-    const appCertificate = env.AgoraAppCertificate;
-
-    const role = RtcRole.PUBLISHER;
-    const expirationTimeInSeconds = 3600; // Token có thời hạn 1 tiếng
-    const currentTimestamp = Math.floor(Date.now() / 1000);
-    const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
-    const token = RtcTokenBuilder.buildTokenWithUid(
-      appId,
-      appCertificate,
-      classId,
-      0,
-      role,
-      expirationTimeInSeconds,
-      privilegeExpiredTs
-    );
-    return token;
   }
 }
 const classService = new ClassesService();
