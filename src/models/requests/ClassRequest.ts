@@ -31,3 +31,7 @@ export interface findClassAccept {
 export interface findClassCode {
   code: string;
 }
+export interface GetMeetingTokenRequest {
+  decodeAuthorization: JwtPayload;
+  classId: string;
+}

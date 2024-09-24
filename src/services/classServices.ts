@@ -4,6 +4,7 @@ import {
   findClassAccept,
   findClassCode,
   findClassPending,
+  GetMeetingTokenRequest,
   jointClassRequest
 } from '~/models/requests/ClassRequest';
 import Classes from '~/models/schemas/Classes';
@@ -13,6 +14,8 @@ import Members from '~/models/schemas/MemberClasses';
 import { ObjectId } from 'mongodb';
 import { ErrorWithStatus } from '~/models/Errors';
 import { httpStatus } from '~/constants/httpStatus';
+import { env } from '~/constants/config';
+import { RtcRole, RtcTokenBuilder } from 'agora-token';
 
 class ClassesService {
   constructor() {}
@@ -119,7 +122,7 @@ class ClassesService {
       });
       const createClass = await db.members.insertOne(member);
       return createClass.insertedId;
-    } else if (classes.type == ClassTypeEnum.Pending) {
+    } else if (classes.type == ClassTypeEnum.Private) {
       const member = new Members({
         user_id: userId,
         class_id: classId,
@@ -170,6 +173,42 @@ class ClassesService {
   async getClassbyCode(payload: findClassCode) {
     const member = await db.classes.findOne({ code: payload.code });
     return member;
+  }
+  async getMeetingToken(payload: GetMeetingTokenRequest) {
+    if (!payload.classId) {
+      throw new ErrorWithStatus({
+        message: 'Cần cung cấp classId',
+        status: httpStatus.BAD_REQUEST
+      });
+    }
+    const classId = payload.classId;
+    const userId = new ObjectId(payload.decodeAuthorization.payload.userId);
+    const user = await db.users.findOne({ _id: userId });
+    // const member = await db.members.findOne({ user_id: userId, class_id: classId });
+    // if (!member) {
+    //   throw new ErrorWithStatus({
+    //     message: 'Bạn không thuộc về lớp này',
+    //     status: httpStatus.BAD_REQUEST
+    //   });
+    // }
+
+    const appId = env.AgoraAppId;
+    const appCertificate = env.AgoraAppCertificate;
+
+    const role = RtcRole.PUBLISHER;
+    const expirationTimeInSeconds = 3600; // Token có thời hạn 1 tiếng
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
+    const token = RtcTokenBuilder.buildTokenWithUid(
+      appId,
+      appCertificate,
+      classId,
+      0,
+      role,
+      expirationTimeInSeconds,
+      privilegeExpiredTs
+    );
+    return token;
   }
 }
 const classService = new ClassesService();
