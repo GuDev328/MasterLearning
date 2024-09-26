@@ -17,9 +17,6 @@ import path from 'path';
 import { env, isProduction } from './constants/config';
 import helmet from 'helmet';
 
-const file = fs.readFileSync(path.resolve('src/swagger.yaml'), 'utf8');
-const swaggerDocument = YAML.parse(file);
-
 const app = express();
 const httpServer = createServer(app);
 
@@ -38,12 +35,11 @@ app.use(express.json());
 
 initializeSocket(httpServer);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/users', usersRouters);
 app.use('/medias', mediasRouters);
 app.use('/tweets', tweetsRouters);
 app.use('/likes', likesRouters);
-app.use('/classes',classRouters );
+app.use('/classes', classRouters);
 app.use('/conversations', conversationsRouters);
 app.use(defaultsErrorHandler);
 

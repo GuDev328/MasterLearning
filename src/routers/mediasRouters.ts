@@ -6,6 +6,7 @@ import {
   getStatusUploadHLSVideoController,
   getVideoHLSController,
   uploadImage,
+  uploadPDF,
   uploadVideo,
   uploadVideoHLS
 } from '~/controllers/mediasControllers';
@@ -14,6 +15,7 @@ import { catchError } from '~/utils/handler';
 
 const router = Router();
 router.post('/upload-image', accessTokenValidator, verifiedUserValidator, catchError(uploadImage));
+router.post('/upload-pdf', accessTokenValidator, verifiedUserValidator, catchError(uploadPDF));
 router.post('/upload-video', accessTokenValidator, verifiedUserValidator, catchError(uploadVideo));
 router.post('/upload-video-hls', accessTokenValidator, verifiedUserValidator, catchError(uploadVideoHLS));
 router.get('/video-hls/:id/master.m3u8', catchError(getVideoHLSController));

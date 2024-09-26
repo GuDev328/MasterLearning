@@ -11,6 +11,14 @@ export const uploadImage = async (req: Request<ParamsDictionary, any, any>, res:
   });
 };
 
+export const uploadPDF = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const result = await mediasService.handleUploadPDF(req);
+  res.status(200).json({
+    result,
+    message: 'Upload PDF suscess'
+  });
+};
+
 export const uploadVideo = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
   const result = await mediasService.handleUploadVideo(req);
   res.status(200).json({

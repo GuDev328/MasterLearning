@@ -145,3 +145,43 @@ export const getFiles = (dir: string, files: string[] = []) => {
   }
   return files;
 };
+
+export const handleUploadPDF = async (req: Request) => {
+  const formidable = (await import('formidable')).default;
+  const form = formidable({
+    uploadDir: path.resolve('uploads/pdfs'),
+    maxFiles: 1,
+    keepExtensions: true,
+    maxFileSize: 250 * 1024 * 1024, // 250MB
+    maxTotalFileSize: 250 * 1024 * 1024, // 250MB
+    filter: function ({ name, originalFilename, mimetype }) {
+      const valid = name === 'pdf' && mimetype === 'application/pdf';
+      if (!valid) {
+        form.emit(
+          'error' as any,
+          new ErrorWithStatus({
+            status: httpStatus.BAD_REQUEST,
+            message: 'Invalid file type. Only PDF files are allowed.'
+          }) as any
+        );
+      }
+      return valid;
+    }
+  });
+  return new Promise<File[]>((resolve, reject) => {
+    form.parse(req, (err, fields, files) => {
+      if (err) {
+        reject(err);
+      }
+      if (!files.pdf) {
+        reject(
+          new ErrorWithStatus({
+            status: httpStatus.BAD_REQUEST,
+            message: 'Required PDF file is missing'
+          }) as any
+        );
+      }
+      resolve(files.pdf as File[]);
+    });
+  });
+};

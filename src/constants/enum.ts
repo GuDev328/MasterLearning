@@ -33,7 +33,8 @@ export interface Media {
 export enum MediaType {
   Image,
   Video,
-  VideoHLS
+  VideoHLS,
+  PDF
 }
 
 export enum TweetTypeEnum {

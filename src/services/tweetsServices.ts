@@ -10,23 +10,23 @@ class TweetsService {
   async createNewTweet(payload: TweetRequest) {
     const tweet = new Tweet({
       user_id: payload.decodeAuthorization.payload.userId,
+      class_id: new ObjectId(payload.class_id),
       type: payload.type,
       content: payload.content,
       parent_id: payload.parent_id ? new ObjectId(payload.parent_id) : null, //  chỉ null khi tweet gốc
       medias: payload.medias,
-      guest_views: 0,
-      user_views: 0
+      views: 0
     });
     const createTweet = await db.tweets.insertOne(tweet);
     return createTweet.insertedId;
   }
 
   async increaseViews(payload: getTweetRequest) {
-    const inc = payload.decodeAuthorization ? { user_views: 1 } : { guest_views: 1 };
+    const inc = { views: 1 };
     const result = await db.tweets.findOneAndUpdate(
       { _id: new ObjectId(payload.tweet._id) },
       { $inc: inc, $currentDate: { updated_at: true } },
-      { returnDocument: 'after', projection: { user_views: 1, guest_views: 1, updated_at: 1 } }
+      { returnDocument: 'after', projection: { views: 1, updated_at: 1 } }
     );
     return result;
   }
@@ -90,7 +90,7 @@ class TweetsService {
       ])
       .toArray();
     const ids = result.map((tweet) => tweet._id as ObjectId);
-    const inc = isUser ? { user_views: 1 } : { guest_views: 1 };
+    const inc = { views: 1 };
     const dateUpdate = new Date();
     await db.tweets.updateMany(
       {
@@ -106,11 +106,7 @@ class TweetsService {
 
     result.forEach((tweet) => {
       tweet.updated_at = dateUpdate;
-      if (isUser) {
-        tweet.user_views += 1;
-      } else {
-        tweet.guest_views += 1;
-      }
+      tweet.views += 1;
     });
 
     const total = await db.tweets.countDocuments({
@@ -121,14 +117,14 @@ class TweetsService {
     return { total_page: Math.ceil(total / limit), result };
   }
 
-  async getNewsFeed(userId: string, limit: number, page: number) {
+  async getNewsFeed(userId: string, class_id: string, limit: number, page: number) {
     const [result, count] = await Promise.all([
       db.tweets
         .aggregate<Tweet>([
           {
             $match: {
               user_id: {
-                $in: [] //ID LỚP HỌC
+                $in: [new ObjectId(class_id)]
               }
             }
           },
@@ -206,7 +202,7 @@ class TweetsService {
           {
             $match: {
               user_id: {
-                $in: [] //ID LỚP HỌC
+                $in: [new ObjectId(class_id)]
               }
             }
           },
@@ -284,12 +280,12 @@ class TweetsService {
         _id: { $in: listTweetId }
       },
       {
-        $inc: { user_views: 1 },
+        $inc: { views: 1 },
         $set: { updated_at: date }
       }
     );
     result.forEach((item) => {
-      (item.user_views += 1), (item.updated_at = date);
+      (item.views += 1), (item.updated_at = date);
     });
     return { total_page: Math.ceil(count[0]?.total / limit), result };
   }

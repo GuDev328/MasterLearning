@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import path from 'path';
 import sharp from 'sharp';
-import { getFiles, handleUploadImage, handleUploadVideo, handleUploadVideoHLS } from '~/utils/file';
+import { getFiles, handleUploadImage, handleUploadPDF, handleUploadVideo, handleUploadVideoHLS } from '~/utils/file';
 import fs from 'fs-extra';
 import { env, isProduction } from '~/constants/config';
 import { Media, MediaType } from '~/constants/enum';
@@ -75,6 +75,26 @@ class MediasService {
         return {
           url: (s3Result as CompleteMultipartUploadOutput).Location as string,
           type: MediaType.Image
+        };
+      })
+    );
+    return result;
+  }
+
+  async handleUploadPDF(req: Request) {
+    const filesUploaded = await handleUploadPDF(req);
+    const result: Media[] = await Promise.all(
+      filesUploaded.map(async (fileUploaded) => {
+        const newPath = path.resolve('uploads/pdfs') + `\\${fileUploaded.newFilename.split('.')[0]}.pdf`;
+        const s3Result = await UploadFileToS3(
+          'pdfs/' + fileUploaded.newFilename,
+          newPath,
+          mime.lookup(newPath) as string
+        );
+        await Promise.all([fs.remove(newPath), fs.remove(fileUploaded.filepath)]);
+        return {
+          url: (s3Result as CompleteMultipartUploadOutput).Location as string,
+          type: MediaType.PDF
         };
       })
     );
