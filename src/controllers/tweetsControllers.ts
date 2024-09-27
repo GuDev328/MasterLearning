@@ -1,11 +1,13 @@
 import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { param } from 'express-validator';
+import { ObjectId } from 'mongodb';
 import path from 'path';
-import { TweetTypeEnum } from '~/constants/enum';
+import { MemberClassTypeEnum, TweetTypeEnum } from '~/constants/enum';
 import { httpStatus } from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
-import { TweetRequest, getTweetRequest } from '~/models/requests/TweetRequest';
+import { TweetRequest, UpdateTweetRequest, getTweetRequest } from '~/models/requests/TweetRequest';
+import db from '~/services/databaseServices';
 import tweetsService from '~/services/tweetsServices';
 
 export const createTweetController = async (req: Request<ParamsDictionary, any, TweetRequest>, res: Response) => {
@@ -60,5 +62,22 @@ export const getNewsFeedController = async (req: Request<ParamsDictionary, any, 
     page,
     limit,
     message: 'Get news feed suscess'
+  });
+};
+
+export const updateTweetController = async (req: Request<ParamsDictionary, any, UpdateTweetRequest>, res: Response) => {
+  const { id } = req.params;
+  const result = await tweetsService.updateTweet(id, req.body);
+  res.status(200).json({
+    result,
+    message: 'Update tweet suscess'
+  });
+};
+
+export const deleteTweetController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const { id } = req.params;
+  await db.tweets.deleteOne({ _id: new ObjectId(id) });
+  res.status(200).json({
+    message: 'Delete tweet suscess'
   });
 };

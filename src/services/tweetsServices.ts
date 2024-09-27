@@ -1,5 +1,5 @@
 import db from '~/services/databaseServices';
-import { TweetRequest, getTweetRequest } from '~/models/requests/TweetRequest';
+import { TweetRequest, UpdateTweetRequest, getTweetRequest } from '~/models/requests/TweetRequest';
 import Tweet from '~/models/schemas/TweetSchema';
 import { ObjectId } from 'mongodb';
 import { TweetTypeEnum } from '~/constants/enum';
@@ -9,7 +9,7 @@ class TweetsService {
 
   async createNewTweet(payload: TweetRequest) {
     const tweet = new Tweet({
-      user_id: payload.decodeAuthorization.payload.userId,
+      user_id: new ObjectId(payload.decodeAuthorization.payload.userId),
       class_id: new ObjectId(payload.class_id),
       type: payload.type,
       content: payload.content,
@@ -40,7 +40,19 @@ class TweetsService {
             type: tweet_type
           }
         },
-
+        {
+          $lookup: {
+            from: 'Users',
+            localField: 'user_id',
+            foreignField: '_id',
+            as: 'user'
+          }
+        },
+        {
+          $unwind: {
+            path: '$user'
+          }
+        },
         {
           $lookup: {
             from: 'Likes',
@@ -78,9 +90,17 @@ class TweetsService {
         },
         {
           $project: {
-            tweet_child: 0
+            tweet_child: 0,
+            user: {
+              password: 0,
+              created_at: 0,
+              emailVerifyToken: 0,
+              forgotPasswordToken: 0,
+              updated_at: 0
+            }
           }
         },
+
         {
           $skip: limit * (page - 1)
         },
@@ -123,9 +143,10 @@ class TweetsService {
         .aggregate<Tweet>([
           {
             $match: {
-              user_id: {
+              class_id: {
                 $in: [new ObjectId(class_id)]
-              }
+              },
+              type: TweetTypeEnum.Tweet
             }
           },
           {
@@ -288,6 +309,16 @@ class TweetsService {
       (item.views += 1), (item.updated_at = date);
     });
     return { total_page: Math.ceil(count[0]?.total / limit), result };
+  }
+
+  async updateTweet(id: string, payload: UpdateTweetRequest) {
+    const { content, medias } = payload;
+    const result = await db.tweets.findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: { content, medias } },
+      { returnDocument: 'after' }
+    );
+    return result;
   }
 }
 

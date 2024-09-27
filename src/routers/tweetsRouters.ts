@@ -1,14 +1,18 @@
 import { Router } from 'express';
 import {
   createTweetController,
+  deleteTweetController,
   getNewsFeedController,
   getTweetChildrenController,
-  getTweetController
+  getTweetController,
+  updateTweetController
 } from '~/controllers/tweetsControllers';
 import {
   createTweetValidator,
   getNewsFeedValidator,
   getTweetChildrenValidator,
+  isMemberOfClassValidator,
+  isTweetOwnerValidator,
   tweetIdValidator
 } from '~/middlewares/tweetsMiddlewares';
 import { accessTokenValidator, isLoginValidator, verifiedUserValidator } from '~/middlewares/usersMiddlewares';
@@ -16,18 +20,37 @@ import { catchError } from '~/utils/handler';
 const router = Router();
 
 router.post(
-  '/create-tweet',
+  '/create',
   accessTokenValidator,
   verifiedUserValidator,
   createTweetValidator,
   catchError(createTweetController)
 );
 
+router.post(
+  '/update/:id',
+  tweetIdValidator,
+  accessTokenValidator,
+  verifiedUserValidator,
+  isTweetOwnerValidator,
+  catchError(updateTweetController)
+);
+
+router.get(
+  '/delete/:id',
+  tweetIdValidator,
+  accessTokenValidator,
+  verifiedUserValidator,
+  isTweetOwnerValidator,
+  catchError(deleteTweetController)
+);
+
 router.get(
   '/tweet/:id',
   tweetIdValidator,
-  isLoginValidator(accessTokenValidator),
-  isLoginValidator(verifiedUserValidator),
+  accessTokenValidator,
+  verifiedUserValidator,
+  isMemberOfClassValidator,
   catchError(getTweetController)
 );
 
@@ -39,8 +62,9 @@ router.get(
   '/tweet/:id/children',
   getTweetChildrenValidator,
   tweetIdValidator,
-  isLoginValidator(accessTokenValidator),
-  isLoginValidator(verifiedUserValidator),
+  accessTokenValidator,
+  verifiedUserValidator,
+  isMemberOfClassValidator,
   catchError(getTweetChildrenController)
 );
 

@@ -11,6 +11,11 @@ export interface TweetRequest {
   medias: Media[];
 }
 
+export interface UpdateTweetRequest {
+  content: string;
+  medias: Media[];
+}
+
 export interface getTweetRequest {
   decodeAuthorization: JwtPayload;
   tweet: Tweet;

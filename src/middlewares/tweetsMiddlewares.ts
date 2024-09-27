@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { body, checkSchema } from 'express-validator';
 import { ObjectId } from 'mongodb';
-import { TokenType, TweetTypeEnum, MediaType, UserVerifyStatus, Media } from '~/constants/enum';
+import { TokenType, TweetTypeEnum, MediaType, UserVerifyStatus, Media, MemberClassTypeEnum } from '~/constants/enum';
 import { httpStatus } from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
 import Tweet from '~/models/schemas/TweetSchema';
@@ -191,6 +191,29 @@ export const tweetIdValidator = validate(
     }
   })
 );
+
+export const isMemberOfClassValidator = async (req: Request, res: Response, next: NextFunction) => {
+  const tweet = req.body.tweet;
+  const isMember = await db.members.findOne({
+    user_id: new ObjectId(req.body.decodeAuthorization.payload.userId),
+    class_id: new ObjectId(tweet.class_id),
+    status: MemberClassTypeEnum.Accept
+  });
+  if (!isMember) {
+    res.status(httpStatus.FORBIDDEN).json({
+      message: 'Bạn không phải là thành viên của lớp học này'
+    });
+  } else next();
+};
+
+export const isTweetOwnerValidator = async (req: Request, res: Response, next: NextFunction) => {
+  const tweet = req.body.tweet;
+  if (new ObjectId(tweet.user_id).toString() !== req.body.decodeAuthorization.payload.userId) {
+    res.status(httpStatus.FORBIDDEN).json({
+      message: 'Bạn không phải là người tạo bài viết này'
+    });
+  } else next();
+};
 
 export const getTweetChildrenValidator = validate(
   checkSchema({
