@@ -11,6 +11,7 @@ class DatabaseServices {
   private client: MongoClient;
   private db: Db;
   constructor() {
+    console.log('uri:',uri);
     this.client = new MongoClient(uri!);
     this.db = this.client.db(env.dbName);
   }
