@@ -4,6 +4,7 @@ import Tweet from '../schemas/TweetSchema';
 
 export interface TweetRequest {
   decodeAuthorization: JwtPayload;
+  class_id: string;
   type: TweetTypeEnum;
   content: string;
   parent_id: null | string; //  chỉ null khi tweet gốc

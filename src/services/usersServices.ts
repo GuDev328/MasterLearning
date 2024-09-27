@@ -87,15 +87,9 @@ class UsersService {
         message: 'Email not found'
       });
     } else {
-      if (user.verify === UserVerifyStatus.Unverified) {
-        throw new ErrorWithStatus({
-          status: httpStatus.UNAUTHORIZED,
-          message: 'Tài khoản chưa được xác nhận. Vui lòng xác nhận email để đăng nhập.'
-        });
-      }
       if (user.verify === UserVerifyStatus.Banned) {
         throw new ErrorWithStatus({
-          status: httpStatus.UNAUTHORIZED,
+          status: httpStatus.FORBIDDEN,
           message: 'Tài khoản đã bị khóa. Vui lòng liên hệ với quản trị để xác nhận.'
         });
       }
@@ -116,7 +110,8 @@ class UsersService {
 
         return {
           accessToken,
-          refreshToken
+          refreshToken,
+          isVerified: user.verify === UserVerifyStatus.Verified
         };
       } else {
         throw new ErrorWithStatus({

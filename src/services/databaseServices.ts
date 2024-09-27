@@ -5,6 +5,8 @@ import { RefreshToken } from '~/models/schemas/RefreshTokenSchema';
 import Tweet from '~/models/schemas/TweetSchema';
 import Conversation from '~/models/schemas/ConversationSchema';
 import { env } from '~/constants/config';
+import Classes from '~/models/schemas/Classes';
+import Members from '~/models/schemas/MemberClasses';
 const uri = env.mongodbURI;
 
 class DatabaseServices {
@@ -59,6 +61,12 @@ class DatabaseServices {
   }
   get tweets(): Collection<Tweet> {
     return this.db.collection('Tweets');
+  }
+  get classes(): Collection<Classes> {
+    return this.db.collection('Classes');
+  }
+  get members(): Collection<Members> {
+    return this.db.collection('Members');
   }
   get conversations(): Collection<Conversation> {
     return this.db.collection('Conversations');

@@ -17,7 +17,15 @@ export enum TokenType {
   FogotPasswordToken,
   VerifyEmailToken
 }
-
+export enum ClassTypeEnum {
+  Public = 'Public',
+  Private = 'Private',
+  Security = 'Security'
+}
+export enum MemberClassTypeEnum {
+  Pending = 'Pending',
+  Accept = 'Accept'
+}
 export interface Media {
   url: string;
   type: MediaType; // video, image
@@ -25,7 +33,8 @@ export interface Media {
 export enum MediaType {
   Image,
   Video,
-  VideoHLS
+  VideoHLS,
+  PDF
 }
 
 export enum TweetTypeEnum {

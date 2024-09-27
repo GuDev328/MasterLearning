@@ -40,7 +40,7 @@ router.get('/oauth/google', catchError(loginGoogleController));
 router.post('/register', registerValidator, catchError(registerController));
 router.post('/logout', accessTokenValidator, refreshTokenValidator, catchError(logoutController));
 router.post('/refresh-token', refreshTokenValidator, catchError(refreshTokenController));
-router.post('/verify-email', accessTokenValidator, verifyEmailValidator, catchError(verifyEmailController));
+router.post('/verify-email', verifyEmailValidator, catchError(verifyEmailController));
 router.post('/resend-verify-email', accessTokenValidator, catchError(resendVerifyEmailController));
 router.post('/forgot-password', forgotPasswordValidator, catchError(forgotPasswordController));
 router.post(

@@ -51,8 +51,9 @@ export const getTweetChildrenController = async (
 export const getNewsFeedController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
   const limit = Number(req.query.limit as string);
   const page = Number(req.query.page as string);
+  const class_id = req.query.class_id as string;
   const userId = req.body.decodeAuthorization.payload.userId;
-  const { total_page, result } = await tweetsService.getNewsFeed(userId, limit, page);
+  const { total_page, result } = await tweetsService.getNewsFeed(userId, class_id, limit, page);
   res.status(200).json({
     result,
     total_page,
