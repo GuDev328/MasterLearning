@@ -4,6 +4,7 @@ import {
   findClassAccept,
   findClassCode,
   findClassPending,
+  GetClassRequest,
   GetMeetingTokenRequest,
   jointClassRequest
 } from '~/models/requests/ClassRequest';
@@ -26,6 +27,7 @@ class ClassesService {
         status: httpStatus.BAD_REQUEST
       });
     }
+
     const generateCode = () => {
       const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       let code = '';
@@ -45,7 +47,7 @@ class ClassesService {
     const classes = new Classes({
       name: payload.name,
       type: payload.type,
-      teacher_id: payload.decodeAuthorization.payload.userId,
+      teacher_id: new ObjectId(payload.decodeAuthorization.payload.userId),
       description: payload.description,
       topic: payload.topic,
       password: payload.password,
@@ -54,6 +56,45 @@ class ClassesService {
     const createClass = await db.classes.insertOne(classes);
     return createClass.insertedId;
   }
+
+  async getMyClass(payload: GetClassRequest) {
+    const classesTeacher = await db.classes
+      .find({ teacher_id: new ObjectId(payload.decodeAuthorization.payload.userId) })
+      .toArray();
+    const classesStudent = await db.members
+      .find({ user_id: new ObjectId(payload.decodeAuthorization.payload.userId) })
+      .toArray();
+    const classId = classesStudent.map((item) => item.class_id);
+    classesTeacher.map((item) => classId.push(item._id));
+    const listClass = await db.classes
+      .aggregate([
+        {
+          $match: { _id: { $in: classId } }
+        },
+        {
+          $lookup: {
+            from: 'Users',
+            localField: 'teacher_id',
+            foreignField: '_id',
+            as: 'teacher'
+          }
+        },
+        {
+          $project: {
+            'teacher.password': 0,
+            'teacher.emailVerifyToken': 0,
+            'teacher.forgotPasswordToken': 0,
+            'teacher.createdAt': 0,
+            'teacher.updatedAt': 0,
+            'teacher.role': 0
+          }
+        }
+      ])
+      .toArray();
+
+    return listClass;
+  }
+
   async acceptMemberClass(payload: AcceptClassRequest) {
     const member = await db.members.findOne({
       _id: new ObjectId(payload.id)
@@ -67,7 +108,7 @@ class ClassesService {
     } else {
       const classes = await db.classes.findOne({
         _id: new ObjectId(member.class_id),
-        teacher_id: payload.decodeAuthorization.payload.userId
+        teacher_id: new ObjectId(payload.decodeAuthorization.payload.userId)
       });
       if (!classes) {
         throw new ErrorWithStatus({
@@ -150,7 +191,7 @@ class ClassesService {
   async getClassPendingClass(payload: findClassPending) {
     const classes = await db.classes.findOne({
       _id: new ObjectId(payload.classId),
-      teacher_id: payload.decodeAuthorization.payload.userId
+      teacher_id: new ObjectId(payload.decodeAuthorization.payload.userId)
     });
     if (classes) {
       const member = await db.members

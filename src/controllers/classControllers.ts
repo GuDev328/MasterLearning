@@ -5,6 +5,7 @@ import {
   findClassAccept,
   findClassCode,
   findClassPending,
+  GetClassRequest,
   GetMeetingTokenRequest,
   jointClassRequest
 } from '~/models/requests/ClassRequest';
@@ -60,8 +61,12 @@ export const findClassByCodeController = async (req: Request<any, any, findClass
   });
 };
 
-export const getClassController = async (req: Request<any, any, ClassRequest>, res: Response) => {
-  res.send('halo');
+export const getClassController = async (req: Request<any, any, GetClassRequest>, res: Response) => {
+  const result = await ClassesService.getMyClass(req.body);
+  res.status(200).json({
+    result,
+    message: 'Get member class accept success'
+  });
 };
 
 export const getMeetingTokenController = async (req: Request<any, any, GetMeetingTokenRequest>, res: Response) => {

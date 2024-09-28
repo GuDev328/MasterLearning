@@ -21,6 +21,6 @@ router.post('/get-member-pending', catchError(getClassPendingController));
 router.post('/get-member-accept', catchError(getClassAcceptController));
 router.post('/find-by-code', catchError(findClassByCodeController));
 router.post('/get-meeting-token', accessTokenValidator, catchError(getMeetingTokenController));
-router.get('/', catchError(getClassController));
+router.get('/', accessTokenValidator, catchError(getClassController));
 
 export default router;

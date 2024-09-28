@@ -11,6 +11,11 @@ export interface ClassRequest {
   password: string;
   code: string;
 }
+
+export interface GetClassRequest {
+  decodeAuthorization: JwtPayload;
+}
+
 export interface AcceptClassRequest {
   decodeAuthorization: JwtPayload;
   id: ObjectId;
