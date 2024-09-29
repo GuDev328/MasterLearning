@@ -64,13 +64,13 @@ export const sendVerifyEmail = async (toAddress: string | string[], token: strin
     body = tempalte
       .replace('{{title}}', env.titleEmailVerifyEmail as string)
       .replace('{{content}}', env.contentEmailVerifyEmail as string)
-      .replace('{{verifyLink}}', env.host + '/verify-email?token=' + token);
-  } else if (type === SendEmail.FogotPassword) {
+      .replace('{{verifyLink}}', env.clientUrl + '/verify-email?token=' + token);
+  } else if (type === SendEmail.ForgotPassword) {
     subject = env.subjectEmailForgotPassword as string;
     body = tempalte
       .replace('{{title}}', env.titleEmailForgotPassword as string)
       .replace('{{content}}', env.contentEmailForgotPassword as string)
-      .replace('{{verifyLink}}', env.host + '/forgot-password?token=' + token);
+      .replace('{{verifyLink}}', env.clientUrl + '/verify-email?token=' + token);
   }
 
   const sendEmailCommand = createSendEmailCommand({

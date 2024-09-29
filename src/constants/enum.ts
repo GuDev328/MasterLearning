@@ -44,5 +44,5 @@ export enum TweetTypeEnum {
 
 export enum SendEmail {
   VerifyEmail,
-  FogotPassword
+  ForgotPassword
 }
