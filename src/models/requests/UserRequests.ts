@@ -43,7 +43,8 @@ export interface ForgotPasswordRequest {
 export interface ResetPasswordRequest {
   password: string;
   confirmPassword: string;
-  forgotPasswordToken: string;
+  user: User;
+  //forgotPasswordToken: string;
 }
 
 export interface GetMeRequest {

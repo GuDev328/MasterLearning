@@ -352,18 +352,14 @@ class UsersService {
 
   async forgotPassword(payload: ForgotPasswordRequest) {
     const user = await db.users.findOne({ email: payload.email });
-    
     if (!user) {
       throw new ErrorWithStatus({
         status: httpStatus.NOT_FOUND,
         message: 'User not found',
       });
     }
-  
     const forgotPasswordToken = await this.signForgotPasswordToken(user._id.toString());
-    console.log('forgotPasswordToken: ',forgotPasswordToken)
-  
-    // Cập nhật token quên mật khẩu cho người dùng
+
     await db.users.updateOne({ _id: user._id }, {
       $set: { forgotPasswordToken, updated_at: new Date() }
     });
@@ -376,40 +372,16 @@ class UsersService {
   }
 
   async resetPassword(payload: ResetPasswordRequest) {
-    const jwtSecret = process.env.JWT_SECRET || 'fallback_secret';
     const saltRounds = 10;
-
-    try {
-        // Giải mã token và lấy userId
-        const decoded = jwt.verify(payload.forgotPasswordToken, jwtSecret) as { userId: string };
-        const user = await db.users.findOne({ _id: new ObjectId(decoded.userId) });
-
-        if (!user || user.forgotPasswordToken === '') {
-            throw new ErrorWithStatus({
-                status: httpStatus.NOT_FOUND,
-                message: 'User not found or token already used',
-            });
-        }
-
-        // Băm mật khẩu mới
-        const hashedPassword = await bcrypt.hash(payload.password, saltRounds);
-
-        // Cập nhật mật khẩu mới và xóa token đặt lại mật khẩu
-        await db.users.updateOne(
-            { _id: new ObjectId(decoded.userId) },
-            {
-                $set: { password: hashedPassword, forgotPasswordToken: '', updated_at: new Date() }
-            }
-        );
-
-        return { message: 'Password reset successfully' };
-    } catch (error) {
-        throw new ErrorWithStatus({
-            status: httpStatus.UNAUTHORIZED,
-            message: 'Invalid or expired token'
-        });
-    }
-}
+    const password = await bcrypt.hashSync(payload.password, saltRounds);
+    const save = await db.users.updateOne(
+      { _id: payload.user._id },
+      {
+        $set: { password, forgotPasswordToken: '', updated_at: new Date() }
+      }
+    );
+    return;
+  }
 
   async getMe(payload: GetMeRequest) {
     const userId = payload.decodeAuthorization.payload.userId;

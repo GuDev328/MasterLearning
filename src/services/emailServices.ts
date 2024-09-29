@@ -24,8 +24,6 @@ export const sendVerifyEmail = async (toAddress: string, token: string, type: Se
       .replace('{{content}}', env.contentEmailVerifyEmail as string)
       .replace('{{verifyLink}}', env.clientUrl + '/verify-email?token=' + token);
   } else if (type === SendEmail.ForgotPassword) {
-    console.log('clientUrl: ',env.clientUrl)
-    console.log('token email service: ',token)
     subject = env.subjectEmailForgotPassword as string;
     body = tempalte
       .replace('{{title}}', env.titleEmailForgotPassword as string)
