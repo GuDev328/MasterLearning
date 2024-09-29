@@ -40,3 +40,7 @@ export interface GetMeetingTokenRequest {
   decodeAuthorization: JwtPayload;
   classId: string;
 }
+export interface deleteClassesRequest{
+  decodeAuthorization: JwtPayload;
+  classes_id:string
+}

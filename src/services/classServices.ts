@@ -1,6 +1,7 @@
 import {
   AcceptClassRequest,
   ClassRequest,
+  deleteClassesRequest,
   findClassAccept,
   findClassCode,
   findClassPending,
@@ -250,6 +251,23 @@ class ClassesService {
       privilegeExpiredTs
     );
     return token;
+  }
+  async deleteClasses (payload:deleteClassesRequest){
+    const classes = await db.classes.findOne({
+      _id: new ObjectId(payload.classes_id),
+      teacher_id: new ObjectId(payload.decodeAuthorization.payload.userId)
+    });
+    if (!classes) {
+      throw new ErrorWithStatus({
+        message: 'the teacher not right',
+        status: httpStatus.BAD_REQUEST
+      });
+    }
+    await db.lessons.deleteMany({ class_id: new ObjectId(payload.classes_id) });
+    await db.members.deleteMany({ class_id: new ObjectId(payload.classes_id) });
+    await db.classes.deleteMany({ _id: new ObjectId(payload.classes_id) });
+    
+
   }
 }
 const classService = new ClassesService();

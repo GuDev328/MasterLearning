@@ -22,6 +22,10 @@ export enum ClassTypeEnum {
   Private = 'Private',
   Security = 'Security'
 }
+export enum LessonTypeEnum {
+  LyThuyet=0,
+  BaiGiang=1
+}
 export enum MemberClassTypeEnum {
   Pending = 'Pending',
   Accept = 'Accept'

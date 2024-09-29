@@ -7,6 +7,7 @@ import Conversation from '~/models/schemas/ConversationSchema';
 import { env } from '~/constants/config';
 import Classes from '~/models/schemas/Classes';
 import Members from '~/models/schemas/MemberClasses';
+import Lessons from '~/models/schemas/Lessons';
 const uri = env.mongodbURI;
 
 class DatabaseServices {
@@ -63,6 +64,9 @@ class DatabaseServices {
   }
   get classes(): Collection<Classes> {
     return this.db.collection('Classes');
+  }
+  get lessons(): Collection<Lessons> {
+    return this.db.collection('Lessons');
   }
   get members(): Collection<Members> {
     return this.db.collection('Members');
