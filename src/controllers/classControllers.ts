@@ -2,9 +2,11 @@ import { Request, RequestHandler, Response } from 'express';
 import {
   AcceptClassRequest,
   ClassRequest,
+  deleteClassesRequest,
   findClassAccept,
   findClassCode,
   findClassPending,
+  GetClassRequest,
   GetMeetingTokenRequest,
   jointClassRequest
 } from '~/models/requests/ClassRequest';
@@ -60,8 +62,12 @@ export const findClassByCodeController = async (req: Request<any, any, findClass
   });
 };
 
-export const getClassController = async (req: Request<any, any, ClassRequest>, res: Response) => {
-  res.send('halo');
+export const getClassController = async (req: Request<any, any, GetClassRequest>, res: Response) => {
+  const result = await ClassesService.getMyClass(req.body);
+  res.status(200).json({
+    result,
+    message: 'Get member class accept success'
+  });
 };
 
 export const getMeetingTokenController = async (req: Request<any, any, GetMeetingTokenRequest>, res: Response) => {
@@ -71,3 +77,11 @@ export const getMeetingTokenController = async (req: Request<any, any, GetMeetin
     message: 'Get meeting token success'
   });
 };
+export const deleteClassesController = async (req: Request<any, any, deleteClassesRequest>, res: Response) => {
+  const token = await ClassesService.deleteClasses(req.body);
+  res.status(200).json({
+    token,
+    message: 'delete class success'
+  });
+};
+

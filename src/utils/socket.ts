@@ -90,6 +90,16 @@ const initializeSocket = (httpServer: ServerHttp) => {
     socket.on('disconnect', () => {
       delete users[userId];
     });
+    socket.on('newComment', (room, comment) => {
+      io.to(room).emit('commentUpdated', comment);
+    });
+
+    socket.on('joinRoomComment', (room) => {
+      socket.join(room);
+    });
+    socket.on('leaveRoomComment', (room) => {
+      socket.leave(room);
+    });
   });
 };
 

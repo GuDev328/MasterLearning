@@ -11,6 +11,11 @@ export interface ClassRequest {
   password: string;
   code: string;
 }
+
+export interface GetClassRequest {
+  decodeAuthorization: JwtPayload;
+}
+
 export interface AcceptClassRequest {
   decodeAuthorization: JwtPayload;
   id: ObjectId;
@@ -34,4 +39,8 @@ export interface findClassCode {
 export interface GetMeetingTokenRequest {
   decodeAuthorization: JwtPayload;
   classId: string;
+}
+export interface deleteClassesRequest{
+  decodeAuthorization: JwtPayload;
+  classes_id:string
 }

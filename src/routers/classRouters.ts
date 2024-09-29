@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   acceptMemberClassController,
   createClassController,
+  deleteClassesController,
   findClassByCodeController,
   getClassAcceptController,
   getClassController,
@@ -21,6 +22,6 @@ router.post('/get-member-pending', catchError(getClassPendingController));
 router.post('/get-member-accept', catchError(getClassAcceptController));
 router.post('/find-by-code', catchError(findClassByCodeController));
 router.post('/get-meeting-token', accessTokenValidator, catchError(getMeetingTokenController));
-router.get('/', catchError(getClassController));
-
+router.get('/', accessTokenValidator, catchError(getClassController));
+router.delete('/delete', accessTokenValidator, catchError(deleteClassesController));
 export default router;
