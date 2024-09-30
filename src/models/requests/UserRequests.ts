@@ -44,6 +44,7 @@ export interface ResetPasswordRequest {
   password: string;
   confirmPassword: string;
   user: User;
+  //forgotPasswordToken: string;
 }
 
 export interface GetMeRequest {

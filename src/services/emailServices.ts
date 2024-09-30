@@ -23,12 +23,12 @@ export const sendVerifyEmail = async (toAddress: string, token: string, type: Se
       .replace('{{title}}', env.titleEmailVerifyEmail as string)
       .replace('{{content}}', env.contentEmailVerifyEmail as string)
       .replace('{{verifyLink}}', env.clientUrl + '/verify-email?token=' + token);
-  } else if (type === SendEmail.FogotPassword) {
+  } else if (type === SendEmail.ForgotPassword) {
     subject = env.subjectEmailForgotPassword as string;
     body = tempalte
       .replace('{{title}}', env.titleEmailForgotPassword as string)
       .replace('{{content}}', env.contentEmailForgotPassword as string)
-      .replace('{{verifyLink}}', env.clientUrl + '/forgot-password?token=' + token);
+      .replace('{{verifyLink}}', env.clientUrl + '/reset-password?token=' + token);
   }
 
   try {

@@ -20,7 +20,7 @@ import { SendEmail, TokenType, UserRole, UserVerifyStatus } from '~/constants/en
 import { ErrorWithStatus } from '~/models/Errors';
 import { RefreshToken } from '~/models/schemas/RefreshTokenSchema';
 import { ObjectId } from 'mongodb';
-import { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { httpStatus } from '~/constants/httpStatus';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
@@ -351,14 +351,24 @@ class UsersService {
   }
 
   async forgotPassword(payload: ForgotPasswordRequest) {
-    const forgotPasswordToken = await this.signForgotPasswordToken(payload.user._id.toString());
-    const save = await db.users.updateOne({ _id: payload.user._id }, [
-      {
-        $set: { forgotPasswordToken, updated_at: '$$NOW' }
-      }
-    ]);
-    await sendVerifyEmail(payload.user.email, forgotPasswordToken, SendEmail.FogotPassword);
-    return;
+    const user = await db.users.findOne({ email: payload.email });
+    if (!user) {
+      throw new ErrorWithStatus({
+        status: httpStatus.NOT_FOUND,
+        message: 'User not found',
+      });
+    }
+    const forgotPasswordToken = await this.signForgotPasswordToken(user._id.toString());
+
+    await db.users.updateOne({ _id: user._id }, {
+      $set: { forgotPasswordToken, updated_at: new Date() }
+    });
+      
+    await sendVerifyEmail(user.email, forgotPasswordToken, SendEmail.ForgotPassword);
+  
+    return {
+      message: 'Email reset password sent',
+    };
   }
 
   async resetPassword(payload: ResetPasswordRequest) {
