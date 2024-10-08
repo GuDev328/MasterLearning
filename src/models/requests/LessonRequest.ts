@@ -13,7 +13,6 @@ export interface LessonCreateRequest {
 export interface LessonUpdateRequest {
   decodeAuthorization: JwtPayload;
   id: string;
-  class_id?: ObjectId[];
   name?: string;
   description?: string;
   media?: Media;

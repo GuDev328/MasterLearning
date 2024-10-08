@@ -74,7 +74,7 @@ class LessonsService {
       });
     }
     const classes = await db.classes.findOne({
-      _id: new ObjectId(lessonCheck.class_id[0]),
+      _id: new ObjectId(lessonCheck.class_id),
       teacher_id: new ObjectId(payload.decodeAuthorization.payload.userId)
     });
     if (!classes) {
@@ -94,6 +94,7 @@ class LessonsService {
     );
     return lessons;
   }
+
   async deleteLesson(payload: DeleteLesson) {
     const lessonCheck = await db.lessons.findOne(
       { _id: new ObjectId(payload.id) } // Tìm lesson bằng id
@@ -105,7 +106,7 @@ class LessonsService {
       });
     }
     const classes = await db.classes.findOne({
-      _id: new ObjectId(lessonCheck.class_id[0]),
+      _id: new ObjectId(lessonCheck.class_id),
       teacher_id: new ObjectId(payload.decodeAuthorization.payload.userId)
     });
     if (!classes) {

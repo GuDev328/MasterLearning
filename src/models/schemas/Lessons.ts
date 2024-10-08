@@ -17,7 +17,7 @@ interface LessonType {
 export default class Lessons {
   _id?: ObjectId;
   teacher_id: ObjectId;
-  class_id: ObjectId[];
+  class_id: ObjectId;
   name: string;
   description: string;
   type: LessonTypeEnum;
@@ -29,7 +29,7 @@ export default class Lessons {
   constructor(classes: LessonType) {
     this._id = classes._id || new ObjectId();
     this.teacher_id = classes.teacher_id || null;
-    this.class_id = [classes.class_id] || [];
+    this.class_id = classes.class_id || new ObjectId();
     this.name = classes.name || '';
     this.description = classes.description;
     this.type = classes.type || LessonTypeEnum.LyThuyet;
