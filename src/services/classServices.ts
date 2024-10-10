@@ -63,7 +63,7 @@ class ClassesService {
       .find({ teacher_id: new ObjectId(payload.decodeAuthorization.payload.userId) })
       .toArray();
     const classesStudent = await db.members
-      .find({ user_id: new ObjectId(payload.decodeAuthorization.payload.userId) })
+      .find({ user_id: new ObjectId(payload.decodeAuthorization.payload.userId), status: MemberClassTypeEnum.Accept })
       .toArray();
     const classId = classesStudent.map((item) => item.class_id);
     classesTeacher.map((item) => classId.push(item._id));
