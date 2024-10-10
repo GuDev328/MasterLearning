@@ -196,7 +196,24 @@ class ClassesService {
     });
     if (classes) {
       const member = await db.members
-        .find({ class_id: new ObjectId(payload.classId), status: MemberClassTypeEnum.Pending })
+        .aggregate([
+          { $match: { class_id: new ObjectId(payload.classId), status: MemberClassTypeEnum.Pending } },
+          {
+            $lookup: {
+              from: 'Users',
+              localField: 'user_id',
+              foreignField: '_id',
+              as: 'user'
+            }
+          },
+          {
+            $project: {
+              'user.password': 0,
+              'user.emailVerifyToken': 0,
+              'user.forgotPasswordToken': 0
+            }
+          }
+        ])
         .toArray();
       return member;
     } else {
@@ -208,7 +225,24 @@ class ClassesService {
   }
   async getClassAcceptClass(payload: findClassAccept) {
     const member = await db.members
-      .find({ class_id: new ObjectId(payload.classId), status: MemberClassTypeEnum.Accept })
+      .aggregate([
+        { $match: { class_id: new ObjectId(payload.classId), status: MemberClassTypeEnum.Accept } },
+        {
+          $lookup: {
+            from: 'Users',
+            localField: 'user_id',
+            foreignField: '_id',
+            as: 'user'
+          }
+        },
+        {
+          $project: {
+            'user.password': 0,
+            'user.emailVerifyToken': 0,
+            'user.forgotPasswordToken': 0
+          }
+        }
+      ])
       .toArray();
     return member;
   }
@@ -252,7 +286,7 @@ class ClassesService {
     );
     return token;
   }
-  async deleteClasses (payload:deleteClassesRequest){
+  async deleteClasses(payload: deleteClassesRequest) {
     const classes = await db.classes.findOne({
       _id: new ObjectId(payload.classes_id),
       teacher_id: new ObjectId(payload.decodeAuthorization.payload.userId)
@@ -266,8 +300,6 @@ class ClassesService {
     await db.lessons.deleteMany({ class_id: new ObjectId(payload.classes_id) });
     await db.members.deleteMany({ class_id: new ObjectId(payload.classes_id) });
     await db.classes.deleteMany({ _id: new ObjectId(payload.classes_id) });
-    
-
   }
 }
 const classService = new ClassesService();
