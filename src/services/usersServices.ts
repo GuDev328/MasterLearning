@@ -87,6 +87,13 @@ class UsersService {
         message: 'Email not found'
       });
     } else {
+      console.log(user);
+      if (user.verify === UserVerifyStatus.Unverified) {
+        throw new ErrorWithStatus({
+          status: httpStatus.FORBIDDEN,
+          message: 'Tài khoản chưa được xác thực. Vui lòng kiểm tra email để xác nhận.'
+        });
+      }
       if (user.verify === UserVerifyStatus.Banned) {
         throw new ErrorWithStatus({
           status: httpStatus.FORBIDDEN,
@@ -355,19 +362,22 @@ class UsersService {
     if (!user) {
       throw new ErrorWithStatus({
         status: httpStatus.NOT_FOUND,
-        message: 'User not found',
+        message: 'User not found'
       });
     }
     const forgotPasswordToken = await this.signForgotPasswordToken(user._id.toString());
 
-    await db.users.updateOne({ _id: user._id }, {
-      $set: { forgotPasswordToken, updated_at: new Date() }
-    });
-      
+    await db.users.updateOne(
+      { _id: user._id },
+      {
+        $set: { forgotPasswordToken, updated_at: new Date() }
+      }
+    );
+
     await sendVerifyEmail(user.email, forgotPasswordToken, SendEmail.ForgotPassword);
-  
+
     return {
-      message: 'Email reset password sent',
+      message: 'Email reset password sent'
     };
   }
 

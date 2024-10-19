@@ -7,6 +7,7 @@ import likesRouters from '~/routers/likesRouters';
 import classRouters from '~/routers/classRouters';
 import lessonRouters from '~/routers/lessonRouters';
 import conversationsRouters from '~/routers/conversationsRouters';
+import excirseRouters from '~/routers/excirseRouters';
 import db from './services/databaseServices';
 import { defaultsErrorHandler } from './middlewares/errorsMiddlewares';
 import cors, { CorsOptions } from 'cors';
@@ -42,6 +43,7 @@ app.use('/tweets', tweetsRouters);
 app.use('/likes', likesRouters);
 app.use('/classes', classRouters);
 app.use('/lessons', lessonRouters);
+app.use('/excirses', excirseRouters);
 app.use('/conversations', conversationsRouters);
 app.use(defaultsErrorHandler);
 

@@ -11,6 +11,37 @@ export enum UserRole {
   Admin
 }
 
+export enum StudentViewRoleExercise {
+  Point,
+  ViewAnswer,
+  ViewResult,
+  ViewCorrectAnswer
+}
+
+export enum AnswerExerciseStatus {
+  NotSubmit,
+  Submitted,
+  Marked
+}
+
+export enum PointType {
+  First,
+  Last,
+  Highest
+}
+
+export enum AnswerType {
+  MC,
+  SHORT,
+  ESSAY
+}
+export interface IAnswer {
+  no: number;
+  type: AnswerType;
+  answer: string;
+  point: number;
+}
+
 export enum TokenType {
   AccessToken,
   RefreshToken,
@@ -23,8 +54,8 @@ export enum ClassTypeEnum {
   Security = 'Security'
 }
 export enum LessonTypeEnum {
-  LyThuyet=0,
-  BaiGiang=1
+  LyThuyet = 0,
+  BaiGiang = 1
 }
 export enum MemberClassTypeEnum {
   Pending = 'Pending',

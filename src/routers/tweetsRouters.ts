@@ -64,7 +64,7 @@ router.get(
   tweetIdValidator,
   accessTokenValidator,
   verifiedUserValidator,
-  isMemberOfClassValidator,
+  //isMemberOfClassValidator,
   catchError(getTweetChildrenController)
 );
 

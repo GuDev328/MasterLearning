@@ -138,7 +138,7 @@ class TweetsService {
   }
 
   async getNewsFeed(userId: string, class_id: string, limit: number, page: number) {
-    const [result, count] = await Promise.all([
+    const [resultRes, count] = await Promise.all([
       db.tweets
         .aggregate<Tweet>([
           {
@@ -294,7 +294,7 @@ class TweetsService {
         ])
         .toArray()
     ]);
-    const listTweetId = result.map((item) => item._id);
+    const listTweetId = resultRes.map((item) => item._id);
     const date = new Date();
     await db.tweets.updateMany(
       {
@@ -305,9 +305,17 @@ class TweetsService {
         $set: { updated_at: date }
       }
     );
-    result.forEach((item) => {
-      (item.views += 1), (item.updated_at = date);
-    });
+    const result = await Promise.all(
+      resultRes.map(async (item) => {
+        const like = await db.likes.findOne({ tweet_id: item._id, user_id: new ObjectId(userId) });
+        return {
+          ...item,
+          views: item.views + 1,
+          updated_at: date,
+          liked: !!like
+        };
+      })
+    );
     return { total_page: Math.ceil(count[0]?.total / limit), result };
   }
 

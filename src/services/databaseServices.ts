@@ -8,13 +8,15 @@ import { env } from '~/constants/config';
 import Classes from '~/models/schemas/Classes';
 import Members from '~/models/schemas/MemberClasses';
 import Lessons from '~/models/schemas/Lessons';
+import ExcirseAnswer from '~/models/schemas/ExcirseAnswer';
+import Excirse from '~/models/schemas/Excirse';
 const uri = env.mongodbURI;
 
 class DatabaseServices {
   private client: MongoClient;
   private db: Db;
   constructor() {
-    console.log('uri:',uri);
+    console.log('uri:', uri);
     this.client = new MongoClient(uri!);
     this.db = this.client.db(env.dbName);
   }
@@ -74,6 +76,12 @@ class DatabaseServices {
   }
   get conversations(): Collection<Conversation> {
     return this.db.collection('Conversations');
+  }
+  get excirseAnswers(): Collection<ExcirseAnswer> {
+    return this.db.collection('ExcirseAnswers');
+  }
+  get excirse(): Collection<Excirse> {
+    return this.db.collection('Excirse');
   }
 }
 
