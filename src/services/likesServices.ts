@@ -10,7 +10,7 @@ class LikesService {
 
   async like(payload: LikeRequest) {
     const checkInDb = await db.likes.findOne({
-      user_id: payload.decodeAuthorization.payload.userId,
+      user_id: new ObjectId(payload.decodeAuthorization.payload.userId) ,
       tweet_id: new ObjectId(payload.tweet_id)
     });
     if (checkInDb) {
@@ -39,7 +39,7 @@ class LikesService {
       });
     }
     const result = await db.likes.deleteOne({
-      user_id: payload.decodeAuthorization.payload.userId,
+      user_id: new ObjectId(payload.decodeAuthorization.payload.userId),
       tweet_id: new ObjectId(payload.tweet_id)
     });
     return result.deletedCount;
