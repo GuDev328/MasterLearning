@@ -87,7 +87,6 @@ class UsersService {
         message: 'Email not found'
       });
     } else {
-      console.log(user);
       if (user.verify === UserVerifyStatus.Unverified) {
         throw new ErrorWithStatus({
           status: httpStatus.FORBIDDEN,
