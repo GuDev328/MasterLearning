@@ -41,7 +41,7 @@ export default class Exercise {
   constructor(exercise: ExerciseType) {
     this._id = exercise._id || new ObjectId();
     this.class_id = exercise.class_id;
-    this.created_by = exercise.created_by;
+    this.created_by = new ObjectId(exercise.created_by);
     this.file = exercise.file;
     this.times_to_do = exercise.times_to_do;
     this.password = exercise.password || undefined;

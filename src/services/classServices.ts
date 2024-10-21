@@ -247,8 +247,33 @@ class ClassesService {
     return member;
   }
   async getClassbyCode(payload: findClassCode) {
-    const member = await db.classes.findOne({ code: payload.code });
-    return member;
+    const member = await db.classes
+      .aggregate([
+        {
+          $match: {
+            code: payload.code
+          }
+        },
+        {
+          $lookup: {
+            from: 'Users',
+            localField: 'teacher_id',
+            foreignField: '_id',
+            as: 'teacher_info'
+          }
+        },
+        {
+          $project: {
+            teacher_info: {
+              password: 0,
+              emailVerifyToken: 0,
+              forgotPasswordToken: 0
+            }
+          }
+        }
+      ])
+      .toArray();
+    return member[0];
   }
   async getMeetingToken(payload: GetMeetingTokenRequest) {
     if (!payload.classId) {

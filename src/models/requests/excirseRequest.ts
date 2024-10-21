@@ -16,3 +16,19 @@ export interface CreateExerciseRequest {
   max_point: number;
   answers: IAnswer[];
 }
+
+export interface UpdateExerciseRequest {
+  decodeAuthorization: JwtPayload;
+  excirse_id: string;
+  file: string;
+  password?: string;
+  time_limit?: number; //minute
+  deadline?: Date;
+  times_to_do: number;
+  time_to_enable?: Date;
+  is_test?: boolean;
+  student_role: StudentViewRoleExercise;
+  point_type: PointType;
+  max_point: number;
+  answers: IAnswer[];
+}

@@ -1,4 +1,7 @@
 import { Request, RequestHandler, Response } from 'express';
+import { ObjectId } from 'mongodb';
+import { httpStatus } from '~/constants/httpStatus';
+import { ErrorWithStatus } from '~/models/Errors';
 import {
   AcceptClassRequest,
   ClassRequest,
@@ -11,6 +14,7 @@ import {
   jointClassRequest
 } from '~/models/requests/ClassRequest';
 import ClassesService from '~/services/classServices';
+import db from '~/services/databaseServices';
 
 export const createClassController = async (req: Request<any, any, ClassRequest>, res: Response) => {
   const result = await ClassesService.createNewClass(req.body);
@@ -62,6 +66,44 @@ export const findClassByCodeController = async (req: Request<any, any, findClass
   });
 };
 
+export const getClassByIDController = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!ObjectId.isValid(id))
+    throw new ErrorWithStatus({ status: httpStatus.BAD_REQUEST, message: 'Đầu vào không hợp lệ' });
+  const result = await db.classes
+    .aggregate([
+      {
+        $match: {
+          _id: new ObjectId(id)
+        }
+      },
+      {
+        $lookup: {
+          from: 'Users',
+          localField: 'teacher_id',
+          foreignField: '_id',
+          as: 'teacher_info'
+        }
+      },
+      {
+        $project: {
+          teacher_info: {
+            password: 0,
+            emailVerifyToken: 0,
+            forgotPasswordToken: 0
+          }
+        }
+      }
+    ])
+    .toArray();
+  if (!result || result.length === 0)
+    throw new ErrorWithStatus({ status: httpStatus.NOT_FOUND, message: 'Không tìm thầy' });
+  res.status(200).json({
+    result: result[0],
+    message: 'Lấy thông tin thành công'
+  });
+};
+
 export const getClassController = async (req: Request<any, any, GetClassRequest>, res: Response) => {
   const result = await ClassesService.getMyClass(req.body);
   res.status(200).json({
@@ -84,4 +126,3 @@ export const deleteClassesController = async (req: Request<any, any, deleteClass
     message: 'delete class success'
   });
 };
-
