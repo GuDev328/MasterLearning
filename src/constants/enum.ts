@@ -22,6 +22,10 @@ export enum ClassTypeEnum {
   Private = 'Private',
   Security = 'Security'
 }
+export enum NotificationTypeEnum{
+  class = 0,
+  user =1
+}
 export enum LessonTypeEnum {
   LyThuyet=0,
   BaiGiang=1

@@ -8,6 +8,7 @@ import { env } from '~/constants/config';
 import Classes from '~/models/schemas/Classes';
 import Members from '~/models/schemas/MemberClasses';
 import Lessons from '~/models/schemas/Lessons';
+import Notification from '~/models/schemas/NotificationSchema';
 const uri = env.mongodbURI;
 
 class DatabaseServices {
@@ -68,6 +69,9 @@ class DatabaseServices {
   }
   get lessons(): Collection<Lessons> {
     return this.db.collection('Lessons');
+  }
+  get notificitions(): Collection<Notification> {
+    return this.db.collection('Notification');
   }
   get members(): Collection<Members> {
     return this.db.collection('Members');
