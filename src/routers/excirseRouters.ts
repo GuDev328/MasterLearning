@@ -4,6 +4,8 @@ import {
   deleteExerciseController,
   getForStudentController,
   getForTeacherController,
+  getListClassForStudentController,
+  getListClassForTeacherController,
   updateExerciseController
 } from '~/controllers/excirseControllers';
 import { IsMemberOfClassValidator, IsTeacherOfClassValidator } from '~/middlewares/lessonMiddlewares';
@@ -17,5 +19,7 @@ router.put('/update', accessTokenValidator, catchError(updateExerciseController)
 router.delete('/delete', accessTokenValidator, catchError(deleteExerciseController));
 router.get('/for-teacher/:id', accessTokenValidator, catchError(getForTeacherController));
 router.get('/for-student/:id', accessTokenValidator, catchError(getForStudentController));
+router.get('/list-for-teacher/:id', accessTokenValidator, catchError(getListClassForTeacherController));
+router.get('/list-for-student/:id', accessTokenValidator, catchError(getListClassForStudentController));
 
 export default router;

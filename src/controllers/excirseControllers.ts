@@ -13,6 +13,26 @@ export const createExerciseController = async (req: Request<any, any, CreateExer
   });
 };
 
+export const getListClassForTeacherController = async (req: Request, res: Response) => {
+  const user_id = new ObjectId(req.body.decodeAuthorization.payload.userId);
+  const class_id = new ObjectId(req.params.id);
+  const result = await excirseServices.getListClassForTeacher(user_id, class_id);
+  res.status(200).json({
+    result,
+    message: 'Lấy danh sách bài tập thành công'
+  });
+};
+
+export const getListClassForStudentController = async (req: Request, res: Response) => {
+  const user_id = new ObjectId(req.body.decodeAuthorization.payload.userId);
+  const class_id = new ObjectId(req.params.id);
+  const result = await excirseServices.getListClassForStudent(user_id, class_id);
+  res.status(200).json({
+    result,
+    message: 'Lấy danh sách bài tập thành công'
+  });
+};
+
 export const updateExerciseController = async (req: Request<any, any, UpdateExerciseRequest>, res: Response) => {
   const result = await excirseServices.updateExcirse(req.body);
   res.status(200).json({

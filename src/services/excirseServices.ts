@@ -168,6 +168,69 @@ class ExcirseServices {
     const result = await db.excirse.findOneAndDelete({ _id: id });
     return result;
   }
+
+  async getListClassForStudent(user_id: ObjectId, class_id: ObjectId) {
+    const check = await this.isMemberClass(class_id, user_id);
+    if (!check) throw new ErrorWithStatus({ status: httpStatus.FORBIDDEN, message: 'Bạn không là thành viên của lớp' });
+    const excirse = await db.excirse
+      .aggregate([
+        {
+          $match: { class_id: class_id }
+        },
+        {
+          $lookup: {
+            from: 'Users',
+            localField: 'created_by',
+            foreignField: '_id',
+            as: 'created_by_info'
+          }
+        },
+        {
+          $project: {
+            answers: {
+              answer: 0
+            },
+            created_by_info: {
+              password: 0,
+              emailVerifyToken: 0,
+              forgotPasswordToken: 0
+            }
+          }
+        }
+      ])
+      .toArray();
+    return excirse;
+  }
+
+  async getListClassForTeacher(user_id: ObjectId, class_id: ObjectId) {
+    const check = await this.isTeacherClass(class_id, user_id);
+    if (!check) throw new ErrorWithStatus({ status: httpStatus.FORBIDDEN, message: 'Bạn không là thành viên của lớp' });
+    const excirse = await db.excirse
+      .aggregate([
+        {
+          $match: { class_id: class_id }
+        },
+        {
+          $lookup: {
+            from: 'Users',
+            localField: 'created_by',
+            foreignField: '_id',
+            as: 'created_by_info'
+          }
+        },
+        {
+          $project: {
+            created_by_info: {
+              password: 0,
+              emailVerifyToken: 0,
+              forgotPasswordToken: 0
+            }
+          }
+        }
+      ])
+      .toArray();
+    return excirse;
+  }
 }
 const excirseServices = new ExcirseServices();
 export default excirseServices;
