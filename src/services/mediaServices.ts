@@ -39,7 +39,11 @@ class Queue {
             mime.lookup(filePath) as string
           );
         });
-        await fs.rm(path.resolve('uploads/videos', idName), { recursive: true });
+        try {
+          await fs.rm(path.resolve('uploads/videos', idName), { recursive: true, force: true });
+        } catch (e) {
+          //console.log('Error in removing video directory: ' + e);
+        }
 
         this.encoding = false;
         this.processing();
