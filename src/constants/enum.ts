@@ -12,10 +12,9 @@ export enum UserRole {
 }
 
 export enum StudentViewRoleExercise {
-  Point,
-  ViewAnswer,
-  ViewResult,
-  ViewCorrectAnswer
+  ONLY_VIEW_SCORE,
+  VIEW_MORE_ANSWER,
+  NOT_VIEW_SCORE
 }
 
 export enum AnswerExerciseStatus {

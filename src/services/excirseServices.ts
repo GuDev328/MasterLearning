@@ -48,6 +48,7 @@ class ExcirseServices {
 
   async createExcirse(payload: CreateExerciseRequest) {
     const excirse = new Excirse({
+      name: payload.name,
       created_by: payload.decodeAuthorization.payload.userId,
       class_id: new ObjectId(payload.class_id),
       file: payload.file,
@@ -142,6 +143,7 @@ class ExcirseServices {
       { _id: new ObjectId(payload.excirse_id) },
       {
         $set: {
+          name: payload.name,
           file: payload.file,
           password: payload.password,
           time_limit: payload.time_limit,

@@ -3,6 +3,7 @@ import { ClassTypeEnum, IAnswer, StudentViewRoleExercise, PointType } from '~/co
 
 interface ExerciseType {
   _id?: ObjectId;
+  name: string;
   class_id: ObjectId;
   created_by: ObjectId;
   file: string;
@@ -22,6 +23,7 @@ interface ExerciseType {
 
 export default class Exercise {
   _id?: ObjectId;
+  name: string;
   class_id: ObjectId;
   created_by: ObjectId;
   file: string;
@@ -40,6 +42,7 @@ export default class Exercise {
 
   constructor(exercise: ExerciseType) {
     this._id = exercise._id || new ObjectId();
+    this.name = exercise.name;
     this.class_id = exercise.class_id;
     this.created_by = new ObjectId(exercise.created_by);
     this.file = exercise.file;

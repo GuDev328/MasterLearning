@@ -2,6 +2,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import { PointType, StudentViewRoleExercise, IAnswer } from '~/constants/enum';
 
 export interface CreateExerciseRequest {
+  name: string;
   decodeAuthorization: JwtPayload;
   class_id: string;
   file: string;
@@ -20,6 +21,7 @@ export interface CreateExerciseRequest {
 export interface UpdateExerciseRequest {
   decodeAuthorization: JwtPayload;
   excirse_id: string;
+  name: string;
   file: string;
   password?: string;
   time_limit?: number; //minute
