@@ -34,3 +34,16 @@ export interface UpdateExerciseRequest {
   max_point: number;
   answers: IAnswer[];
 }
+
+export interface SubmitExerciseRequest {
+  decodeAuthorization: JwtPayload;
+  file?: string;
+  excirse_id: string;
+  answers: IAnswer[];
+}
+
+export interface MarkExerciseRequest {
+  decodeAuthorization: JwtPayload;
+  exercise_answer_id: string;
+  answers: IAnswer[];
+}

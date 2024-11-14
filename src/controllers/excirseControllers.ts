@@ -1,9 +1,15 @@
 import { Request, Response } from 'express';
-import { CreateExerciseRequest, UpdateExerciseRequest } from '~/models/requests/excirseRequest';
+import {
+  CreateExerciseRequest,
+  MarkExerciseRequest,
+  SubmitExerciseRequest,
+  UpdateExerciseRequest
+} from '~/models/requests/excirseRequest';
 import { DeleteLesson, findLesson, LessonCreateRequest, LessonUpdateRequest } from '~/models/requests/LessonRequest';
 import lessonsService from '~/services/lessonServices';
 import excirseServices from '~/services/excirseServices';
 import { ObjectId } from 'mongodb';
+import db from '~/services/databaseServices';
 
 export const createExerciseController = async (req: Request<any, any, CreateExerciseRequest>, res: Response) => {
   const result = await excirseServices.createExcirse(req.body);
@@ -81,5 +87,40 @@ export const getForTeacherExerciseController = async (req: Request, res: Respons
   res.status(200).json({
     result,
     message: 'Lấy thông tin bài tập thành công'
+  });
+};
+
+export const submitExerciseController = async (req: Request<any, any, SubmitExerciseRequest>, res: Response) => {
+  const result = await excirseServices.submitExercise(req.body);
+  res.status(200).json({
+    result,
+    message: 'Nộp bài tập thành công'
+  });
+};
+
+export const getListNotMarkController = async (req: Request, res: Response) => {
+  const user_id = req.body.decodeAuthorization.payload.userId;
+  const exercise_id = req.params.id;
+  const result = await excirseServices.getListNotMark(new ObjectId(user_id), new ObjectId(exercise_id));
+  res.status(200).json({
+    result,
+    message: 'Lấy danh sách bài tập chưa chấm thành công'
+  });
+};
+
+export const getDetailToMarkController = async (req: Request, res: Response) => {
+  const exercise_answer_id = req.params.id;
+  const result = await db.excirseAnswers.findOne({ _id: new ObjectId(exercise_answer_id) });
+  res.status(200).json({
+    result,
+    message: 'Lấy thông tin bài tập cần chấm thành công'
+  });
+};
+
+export const markExerciseController = async (req: Request<any, any, MarkExerciseRequest>, res: Response) => {
+  const result = await excirseServices.markExercise(req.body);
+  res.status(200).json({
+    result,
+    message: 'Chấm bài tập thành công'
   });
 };

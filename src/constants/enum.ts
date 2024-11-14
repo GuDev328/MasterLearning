@@ -20,6 +20,7 @@ export enum StudentViewRoleExercise {
 export enum AnswerExerciseStatus {
   NotSubmit,
   Submitted,
+  Marking,
   Marked
 }
 
@@ -38,7 +39,10 @@ export interface IAnswer {
   no: number;
   type: AnswerType;
   answer: string;
+  correct?: boolean;
   point: number;
+  correct_answer?: string;
+  max_point?: number;
 }
 
 export enum TokenType {

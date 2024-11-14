@@ -13,7 +13,7 @@ interface ExerciseType {
   updated_at?: Date;
 }
 
-export default class Exercise {
+export default class ExerciseAnswer {
   _id?: ObjectId;
   user_id: ObjectId;
   exercise_id: ObjectId;
