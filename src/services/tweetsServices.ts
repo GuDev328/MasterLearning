@@ -146,6 +146,7 @@ class TweetsService {
               class_id: {
                 $in: [new ObjectId(class_id)]
               },
+              censored: true,
               type: TweetTypeEnum.Tweet
             }
           },
@@ -227,9 +228,11 @@ class TweetsService {
         .aggregate([
           {
             $match: {
-              user_id: {
+              class_id: {
                 $in: [new ObjectId(class_id)]
-              }
+              },
+              censored: true,
+              type: TweetTypeEnum.Tweet
             }
           },
           {
@@ -331,6 +334,138 @@ class TweetsService {
       { $set: { content, medias } },
       { returnDocument: 'after' }
     );
+    return result;
+  }
+
+  async getNewsFeedNotCensored(limit: number, page: number) {
+    const [resultRes, count] = await Promise.all([
+      db.tweets
+        .aggregate<Tweet>([
+          {
+            $match: {
+              censored: false,
+              type: TweetTypeEnum.Tweet
+            }
+          },
+          {
+            $lookup: {
+              from: 'Users',
+              localField: 'user_id',
+              foreignField: '_id',
+              as: 'user'
+            }
+          },
+          {
+            $unwind: {
+              path: '$user'
+            }
+          },
+
+          {
+            $lookup: {
+              from: 'Likes',
+              localField: '_id',
+              foreignField: 'tweet_id',
+              as: 'likes'
+            }
+          },
+          {
+            $lookup: {
+              from: 'Tweets',
+              localField: '_id',
+              foreignField: 'parent_id',
+              as: 'tweet_child'
+            }
+          },
+          {
+            $addFields: {
+              likes: {
+                $size: '$likes'
+              },
+
+              comment: {
+                $size: {
+                  $filter: {
+                    input: '$tweet_child',
+                    as: 'item',
+                    cond: {
+                      $eq: ['$$item.type', TweetTypeEnum.Comment]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            $project: {
+              tweet_child: 0,
+              user: {
+                password: 0,
+                created_at: 0,
+                emailVerifyToken: 0,
+                forgotPasswordToken: 0,
+                updated_at: 0
+              }
+            }
+          },
+          {
+            $sort: {
+              created_at: -1
+            }
+          },
+          {
+            $skip: limit * (page - 1)
+          },
+          {
+            $limit: limit
+          }
+        ])
+        .toArray(),
+      db.tweets
+        .aggregate([
+          {
+            $match: {
+              censored: false,
+              type: TweetTypeEnum.Tweet
+            }
+          },
+          {
+            $lookup: {
+              from: 'Users',
+              localField: 'user_id',
+              foreignField: '_id',
+              as: 'user'
+            }
+          },
+          {
+            $unwind: {
+              path: '$user'
+            }
+          },
+          {
+            $project: {
+              tweet_child: 0,
+              user: {
+                password: 0,
+                created_at: 0,
+                emailVerifyToken: 0,
+                forgotPasswordToken: 0,
+                updated_at: 0
+              }
+            }
+          },
+          {
+            $count: 'total'
+          }
+        ])
+        .toArray()
+    ]);
+
+    return { total_page: Math.ceil(count[0]?.total / limit), result: resultRes };
+  }
+
+  async censorTweet(id: string) {
+    const result = await db.tweets.updateOne({ _id: new ObjectId(id) }, { $set: { censored: true } });
     return result;
   }
 }

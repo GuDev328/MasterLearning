@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import {
+  censorTweetController,
   createTweetController,
   deleteTweetController,
   getNewsFeedController,
+  getNewsFeedNotCensoredController,
   getTweetChildrenController,
   getTweetController,
   updateTweetController
@@ -74,4 +76,14 @@ router.get(
  * Query: {limit: number, page: number}
  */
 router.get('/', getNewsFeedValidator, accessTokenValidator, verifiedUserValidator, catchError(getNewsFeedController));
+router.get(
+  '/not-censored',
+  getNewsFeedValidator,
+  accessTokenValidator,
+  verifiedUserValidator,
+  catchError(getNewsFeedNotCensoredController)
+);
+
+router.post('/censor', accessTokenValidator, catchError(censorTweetController));
+
 export default router;

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { LessonTypeEnum } from '~/constants/enum';
 import { DeleteLesson, findLesson, LessonCreateRequest, LessonUpdateRequest } from '~/models/requests/LessonRequest';
 import lessonsService from '~/services/lessonServices';
 
@@ -36,5 +37,23 @@ export const getLessonByIdController = async (req: Request, res: Response) => {
   res.status(200).json({
     result,
     message: 'get lesson by id suscess'
+  });
+};
+
+export const censorLessonController = async (req: Request<any, any, any>, res: Response) => {
+  const { lesson_id } = req.body;
+  const result = await lessonsService.censorLesson(lesson_id);
+  res.status(200).json({
+    result,
+    message: 'Đã kiểm duyệt bài giảng/tài liệu'
+  });
+};
+
+export const getLessonNotCensoredController = async (req: Request, res: Response) => {
+  const { type } = req.body;
+  const result = await lessonsService.getLessonNotCensored(type);
+  res.status(200).json({
+    result,
+    message: 'Get lesson not censored suscess'
   });
 };

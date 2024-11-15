@@ -65,6 +65,19 @@ export const getNewsFeedController = async (req: Request<ParamsDictionary, any, 
   });
 };
 
+export const getNewsFeedNotCensoredController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const limit = Number(req.query.limit as string);
+  const page = Number(req.query.page as string);
+  const { total_page, result } = await tweetsService.getNewsFeedNotCensored(limit, page);
+  res.status(200).json({
+    result,
+    total_page,
+    page,
+    limit,
+    message: 'Get news feed not censored suscess'
+  });
+};
+
 export const updateTweetController = async (req: Request<ParamsDictionary, any, UpdateTweetRequest>, res: Response) => {
   const { id } = req.params;
   const result = await tweetsService.updateTweet(id, req.body);
@@ -79,5 +92,14 @@ export const deleteTweetController = async (req: Request<ParamsDictionary, any, 
   await db.tweets.deleteOne({ _id: new ObjectId(id) });
   res.status(200).json({
     message: 'Delete tweet suscess'
+  });
+};
+
+export const censorTweetController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const { tweet_id } = req.body;
+  const result = await tweetsService.censorTweet(tweet_id);
+  res.status(200).json({
+    result,
+    message: 'Đã kiểm duyệt bài viết'
   });
 };

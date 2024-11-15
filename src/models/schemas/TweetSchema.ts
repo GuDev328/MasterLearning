@@ -10,6 +10,7 @@ interface TweetType {
   parent_id: null | ObjectId; //  chỉ null khi tweet gốc
   medias: Media[];
   views: number;
+  censored?: boolean;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -23,6 +24,7 @@ export default class Tweet {
   parent_id: null | ObjectId; //  chỉ null khi tweet gốc
   medias: Media[];
   views: number;
+  censored?: boolean;
   created_at: Date;
   updated_at: Date;
 
@@ -35,6 +37,7 @@ export default class Tweet {
     this.parent_id = tweet.parent_id || null; //  chỉ null khi tweet gốc
     this.medias = tweet.medias || [];
     this.views = tweet.views || 0;
+    this.censored = tweet.type === TweetTypeEnum.Tweet ? false : true;
     this.created_at = tweet.created_at || new Date();
     this.updated_at = tweet.updated_at || new Date();
   }

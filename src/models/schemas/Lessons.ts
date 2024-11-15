@@ -11,6 +11,7 @@ interface LessonType {
   media: Media;
   deleted_At?: Date;
   created_at?: Date;
+  censored?: boolean;
   updated_at?: Date;
 }
 
@@ -22,6 +23,7 @@ export default class Lessons {
   description: string;
   type: LessonTypeEnum;
   media: Media;
+  censored: boolean;
   deleted_At?: Date;
   created_at?: Date;
   updated_at?: Date;
@@ -34,6 +36,7 @@ export default class Lessons {
     this.description = classes.description;
     this.type = classes.type || LessonTypeEnum.LyThuyet;
     this.media = classes.media || '';
+    this.censored = false;
     this.deleted_At = classes.deleted_At || undefined;
     this.created_at = classes.created_at || new Date();
     this.updated_at = classes.updated_at || new Date();

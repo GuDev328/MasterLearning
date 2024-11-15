@@ -59,7 +59,7 @@ class LessonsService {
   }
 
   async getLessonbyClass(payload: findLesson) {
-    const lessons = await db.lessons.find({ class_id: new ObjectId(payload.class_id) }).toArray();
+    const lessons = await db.lessons.find({ class_id: new ObjectId(payload.class_id), censored: true }).toArray();
     return lessons;
   }
 
@@ -125,6 +125,16 @@ class LessonsService {
   async getLessonById(id: string) {
     const lesson = await db.lessons.findOne({ _id: new ObjectId(id) });
     return lesson;
+  }
+
+  async censorLesson(id: string) {
+    const result = await db.lessons.updateOne({ _id: new ObjectId(id) }, { $set: { censored: true } });
+    return result;
+  }
+
+  async getLessonNotCensored(type: any) {
+    const result = await db.lessons.find({ type, censored: false }).toArray();
+    return result;
   }
 }
 const lessonsService = new LessonsService();
