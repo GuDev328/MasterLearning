@@ -3,7 +3,7 @@ import { body, checkSchema } from 'express-validator';
 import { request } from 'http';
 import { JwtPayload } from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
-import { TokenType, UserVerifyStatus } from '~/constants/enum';
+import { TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
 import { httpStatus } from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
 import db from '~/services/databaseServices';
@@ -298,6 +298,19 @@ export const verifiedUserValidator = (req: Request, res: Response, next: NextFun
     return next(
       new ErrorWithStatus({
         message: 'User not Verified',
+        status: httpStatus.FORBIDDEN
+      })
+    );
+  }
+  next();
+};
+
+export const isAdminValidator = (req: Request, res: Response, next: NextFunction) => {
+  const { role } = req.body.decodeAuthorization.payload;
+  if (role !== UserRole.Admin) {
+    return next(
+      new ErrorWithStatus({
+        message: 'User is not admin',
         status: httpStatus.FORBIDDEN
       })
     );

@@ -1,6 +1,6 @@
 import { JwtPayload } from 'jsonwebtoken';
 import User from '../schemas/UserSchema';
-import { UserRole } from '~/constants/enum';
+import { UserRole, UserVerifyStatus } from '~/constants/enum';
 
 export interface RegisterRequest {
   name: string;
@@ -10,6 +10,15 @@ export interface RegisterRequest {
   role: UserRole;
   confirmPassword: string;
   date_of_birth: string;
+}
+
+export interface UpdateUserRequest {
+  id: string;
+  name: string;
+  avatar?: string;
+  role: UserRole;
+  date_of_birth: string;
+  verify: UserVerifyStatus;
 }
 
 export interface LoginRequest {
@@ -33,6 +42,13 @@ export interface VerifyEmailRequest {
 
 export interface ResendVerifyEmailRequest {
   decodeAuthorization: JwtPayload;
+}
+
+export interface DataSearchUser {
+  name?: string;
+  email?: string;
+  verify?: UserVerifyStatus;
+  role?: UserRole;
 }
 
 export interface ForgotPasswordRequest {

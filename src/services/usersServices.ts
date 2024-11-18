@@ -1,6 +1,7 @@
 import {
   AddUsersToCircleRequest,
   ChangePasswordRequest,
+  DataSearchUser,
   ForgotPasswordRequest,
   GetMeRequest,
   LoginRequest,
@@ -10,6 +11,7 @@ import {
   ResendVerifyEmailRequest,
   ResetPasswordRequest,
   UpdateMeRequest,
+  UpdateUserRequest,
   VerifyEmailRequest
 } from '~/models/requests/UserRequests';
 import bcrypt from 'bcrypt';
@@ -26,6 +28,7 @@ import axios from 'axios';
 import { nanoid } from 'nanoid';
 import { env } from '~/constants/config';
 import { sendVerifyEmail } from './emailServices';
+import { omit } from 'lodash';
 
 class UsersService {
   constructor() {}
@@ -467,6 +470,68 @@ class UsersService {
       );
       return;
     }
+  }
+
+  async getAllUsers(limit: number, page: number, dataSearch: DataSearchUser) {
+    const skip = (page - 1) * limit;
+
+    // Build search query object
+    const searchQuery: any = {};
+
+    if (dataSearch.email) {
+      searchQuery.email = { $regex: dataSearch.email, $options: 'i' };
+    }
+    if (dataSearch.name) {
+      searchQuery.name = { $regex: dataSearch.name, $options: 'i' };
+    }
+    if (dataSearch.role !== undefined) {
+      searchQuery.role = dataSearch.role;
+    }
+    if (dataSearch.verify !== undefined) {
+      searchQuery.verify = dataSearch.verify;
+    }
+
+    const [users, total] = await Promise.all([
+      db.users
+        .find(searchQuery, {
+          projection: {
+            password: 0,
+            emailVerifyToken: 0,
+            forgotPasswordToken: 0
+          }
+        })
+        .skip(skip)
+        .limit(limit)
+        .toArray(),
+      db.users.countDocuments(searchQuery)
+    ]);
+
+    return {
+      total_page: Math.ceil(total / limit),
+      result: users
+    };
+  }
+
+  async blockUser(userId: string) {
+    const user = await db.users.findOneAndUpdate(
+      { _id: new ObjectId(userId) },
+      { $set: { verify: UserVerifyStatus.Banned } }
+    );
+    return true;
+  }
+
+  async getUserById(userId: string) {
+    const user = await db.users.findOne({ _id: new ObjectId(userId) });
+    return user;
+  }
+
+  async updateUser(payload: UpdateUserRequest) {
+    const payloadUpdate = {
+      ...omit(payload, 'id'),
+      date_of_birth: new Date(payload.date_of_birth)
+    };
+    const user = await db.users.findOneAndUpdate({ _id: new ObjectId(payload.id) }, { $set: payloadUpdate });
+    return true;
   }
 }
 

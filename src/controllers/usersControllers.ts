@@ -6,6 +6,7 @@ import { env } from '~/constants/config';
 import {
   AddUsersToCircleRequest,
   ChangePasswordRequest,
+  DataSearchUser,
   ForgotPasswordRequest,
   GetMeRequest,
   LoginRequest,
@@ -15,9 +16,57 @@ import {
   ResendVerifyEmailRequest,
   ResetPasswordRequest,
   UpdateMeRequest,
+  UpdateUserRequest,
   VerifyEmailRequest
 } from '~/models/requests/UserRequests';
 import userService from '~/services/usersServices';
+
+export const getAllUsersController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const { limit, page } = req.query;
+  let dataSearch = req.body.dataSearch as DataSearchUser;
+  if (!dataSearch) {
+    dataSearch = {
+      name: undefined,
+      email: undefined,
+      verify: undefined,
+      role: undefined
+    };
+  }
+  const { result, total_page } = await userService.getAllUsers(Number(limit), Number(page), dataSearch);
+  res.status(200).json({
+    result,
+    total_page,
+    page,
+    limit,
+    message: 'Lấy danh sách tài khoản thành công'
+  });
+};
+
+export const blockUserController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const { user_id } = req.body;
+  const result = await userService.blockUser(user_id);
+  res.status(200).json({
+    result,
+    message: 'Block user suscess'
+  });
+};
+
+export const getUserByIdController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const { id } = req.params;
+  const result = await userService.getUserById(id);
+  res.status(200).json({
+    result,
+    message: 'Get user by id suscess'
+  });
+};
+
+export const updateUserController = async (req: Request<ParamsDictionary, any, UpdateUserRequest>, res: Response) => {
+  const result = await userService.updateUser(req.body);
+  res.status(200).json({
+    result,
+    message: 'Update suscess'
+  });
+};
 
 export const loginController = async (req: Request<ParamsDictionary, any, LoginRequest>, res: Response) => {
   const result = await userService.login(req.body);
@@ -104,11 +153,11 @@ export const resetPasswordController = async (
     const result = await userService.resetPassword(req.body);
     return res.status(200).json({
       result,
-      message: 'Reset password success',
+      message: 'Reset password success'
     });
   } catch (error: any) {
     return res.status(error.status || 500).json({
-      message: error.message || 'An error occurred while resetting password',
+      message: error.message || 'An error occurred while resetting password'
     });
   }
 };
