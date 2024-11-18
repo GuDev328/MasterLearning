@@ -236,7 +236,21 @@ class ExcirseServices {
         }
       ])
       .toArray();
-    return excirse;
+
+    const result = await Promise.all(
+      excirse.map(async (item) => {
+        const attemptCount = await db.excirseAnswers.countDocuments({
+          exercise_id: item._id,
+          user_id: user_id
+        });
+        return {
+          ...item,
+          done_count: attemptCount
+        };
+      })
+    );
+
+    return result;
   }
 
   async getListClassForTeacher(user_id: ObjectId, class_id: ObjectId) {
