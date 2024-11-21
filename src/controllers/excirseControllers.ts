@@ -111,8 +111,12 @@ export const getListNotMarkController = async (req: Request, res: Response) => {
 export const getDetailToMarkController = async (req: Request, res: Response) => {
   const exercise_answer_id = req.params.id;
   const result = await db.excirseAnswers.findOne({ _id: new ObjectId(exercise_answer_id) });
+  const exercise = await db.excirse.findOne({ _id: result?.exercise_id });
   res.status(200).json({
-    result,
+    result: {
+      ...result,
+      question_file: exercise?.file
+    },
     message: 'Lấy thông tin bài tập cần chấm thành công'
   });
 };

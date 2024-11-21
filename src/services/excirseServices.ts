@@ -18,6 +18,7 @@ import {
   IAnswer,
   LessonTypeEnum,
   MemberClassTypeEnum,
+  PointType,
   StudentViewRoleExercise
 } from '~/constants/enum';
 import Members from '~/models/schemas/MemberClasses';
@@ -239,12 +240,29 @@ class ExcirseServices {
 
     const result = await Promise.all(
       excirse.map(async (item) => {
-        const attemptCount = await db.excirseAnswers.countDocuments({
-          exercise_id: item._id,
-          user_id: user_id
-        });
+        const answers = await db.excirseAnswers
+          .find({
+            exercise_id: item._id,
+            user_id: user_id
+          })
+          .toArray();
+        const pointArr = answers
+          .map((answer) => {
+            if (answer.status === AnswerExerciseStatus.Marked) return answer.point;
+            else return null;
+          })
+          .filter((item): item is number => item !== null);
+        let point: any = null;
+        if (pointArr && pointArr.length > 0) {
+          if (item.point_type === PointType.First) point = pointArr[0];
+          else if (item.point_type === PointType.Last) point = pointArr[pointArr.length - 1];
+          else point = Math.max(...pointArr);
+        }
+        const attemptCount = answers.length;
+
         return {
           ...item,
+          point: point,
           done_count: attemptCount
         };
       })
