@@ -6,6 +6,7 @@ import {
   getLessonByClassController,
   getLessonByIdController,
   getLessonNotCensoredController,
+  rejectLessonController,
   updateLessonController
 } from '~/controllers/lessonsController';
 import { IsMemberOfClassValidator, IsTeacherOfClassValidator } from '~/middlewares/lessonMiddlewares';
@@ -21,5 +22,6 @@ router.delete('/delete', accessTokenValidator, IsTeacherOfClassValidator, catchE
 router.post('/not-censored', accessTokenValidator, catchError(getLessonNotCensoredController));
 router.post('/censor', accessTokenValidator, catchError(censorLessonController));
 router.get('/:id', accessTokenValidator, IsMemberOfClassValidator, catchError(getLessonByIdController));
+router.post('/reject', accessTokenValidator, catchError(rejectLessonController));
 
 export default router;

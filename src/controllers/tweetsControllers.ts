@@ -103,3 +103,12 @@ export const censorTweetController = async (req: Request<ParamsDictionary, any, 
     message: 'Đã kiểm duyệt bài viết'
   });
 };
+
+export const rejectTweetController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const { tweet_id } = req.body;
+  const result = await tweetsService.rejectTweet(tweet_id);
+  res.status(200).json({
+    result,
+    message: 'Đã từ chối bài viết'
+  });
+};

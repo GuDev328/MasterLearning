@@ -468,6 +468,11 @@ class TweetsService {
     const result = await db.tweets.updateOne({ _id: new ObjectId(id) }, { $set: { censored: true } });
     return result;
   }
+
+  async rejectTweet(id: string) {
+    const result = await db.tweets.updateOne({ _id: new ObjectId(id) }, { $set: { censored: undefined } });
+    return result;
+  }
 }
 
 const tweetsService = new TweetsService();
