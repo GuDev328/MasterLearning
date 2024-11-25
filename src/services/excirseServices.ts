@@ -309,7 +309,10 @@ class ExcirseServices {
     const user_answers = payload.answers.sort((a, b) => a.no - b.no);
     let total_point = 0;
     let is_markable = false;
+    console.log("check",user_answers)
+    console.log("excirse_answers",excirse_answers)
     user_answers?.forEach((item, index) => {
+      console.log(item,index,"d")
       if (
         item.type !== AnswerType.ESSAY &&
         item.answer.toLowerCase().trim() === excirse_answers[index].answer.toLowerCase().trim()
@@ -401,6 +404,37 @@ class ExcirseServices {
       { returnDocument: 'after' }
     );
     return saveData;
+  }
+  
+  async getMarkExerciseByTeacher(id: string) {
+      const result = await db.excirseAnswers.aggregate([
+        {
+          $match: {
+            exercise_id: new ObjectId(id),
+            status: AnswerExerciseStatus.Marked
+          }
+        },
+        {
+          $lookup: {
+            from: 'Users',
+            localField: 'user_id',
+            foreignField: '_id',
+            as: 'user_info'
+          }
+        },
+        {
+          $project: {
+            user_info: {
+              password: 0,
+              emailVerifyToken: 0,
+              forgotPasswordToken: 0
+            }
+          }
+        }
+      ])
+      .toArray();
+      console.log("chck result")
+      return result
   }
 }
 const excirseServices = new ExcirseServices();
