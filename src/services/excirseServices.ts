@@ -405,6 +405,37 @@ class ExcirseServices {
     );
     return saveData;
   }
+  
+  async getMarkExerciseByTeacher(id: string) {
+      const result = await db.excirseAnswers.aggregate([
+        {
+          $match: {
+            exercise_id: new ObjectId(id),
+            status: AnswerExerciseStatus.Marked
+          }
+        },
+        {
+          $lookup: {
+            from: 'Users',
+            localField: 'user_id',
+            foreignField: '_id',
+            as: 'user_info'
+          }
+        },
+        {
+          $project: {
+            user_info: {
+              password: 0,
+              emailVerifyToken: 0,
+              forgotPasswordToken: 0
+            }
+          }
+        }
+      ])
+      .toArray();
+      console.log("chck result")
+      return result
+  }
 }
 const excirseServices = new ExcirseServices();
 export default excirseServices;

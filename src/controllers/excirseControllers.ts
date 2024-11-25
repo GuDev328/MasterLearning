@@ -128,3 +128,12 @@ export const markExerciseController = async (req: Request<any, any, MarkExercise
     message: 'Chấm bài tập thành công'
   });
 };
+
+export const getMarkExerciseByTeacher = async (req: Request, res: Response) => {
+  const exercise_id = req.params.id;
+  const result = await excirseServices.getMarkExerciseByTeacher(exercise_id);
+  res.status(200).json({
+    result,
+    message: 'Lấy điểm số cho bài tập thành công'
+  });
+};
