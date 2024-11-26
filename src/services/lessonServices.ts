@@ -132,8 +132,16 @@ class LessonsService {
     return result;
   }
 
-  async getLessonNotCensored(type: any) {
-    const result = await db.lessons.find({ type, censored: false }).toArray();
+  async getLessonNotCensored(type: any, isAll: boolean) {
+    let result = await db.lessons.find({ type, censored: false }).toArray();
+    if (isAll) {
+      result = await db.lessons.find({ type }).toArray();
+    }
+    return result;
+  }
+
+  async rejectLesson(id: string) {
+    const result = await db.lessons.updateOne({ _id: new ObjectId(id) }, { $set: { censored: undefined } });
     return result;
   }
 }

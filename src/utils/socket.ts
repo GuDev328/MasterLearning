@@ -65,27 +65,15 @@ const initializeSocket = (httpServer: ServerHttp) => {
       }
     });
 
-    socket.on('chat', async (data) => {
-      const contentChat = data.content;
-      const receiverUserId = data.receiver_id;
-      const fromUserId = data.sender_id;
-      const receiverSocketId = users[receiverUserId]?.socketId;
+    socket.on('joinRoomChat', (room) => {
+      socket.join(room);
+    });
+    socket.on('leaveRoomChat', (room) => {
+      socket.leave(room);
+    });
 
-      await db.conversations.insertOne(
-        new Conversation({
-          sender_id: new ObjectId(fromUserId),
-          receiver_id: new ObjectId(receiverUserId),
-          content: contentChat
-        })
-      );
-
-      if (receiverSocketId) {
-        socket.to(receiverSocketId).emit('receiver-chat', {
-          sender_id: fromUserId,
-          receiver_id: receiverSocketId,
-          content: contentChat
-        });
-      }
+    socket.on('newChat', (room, chat) => {
+      io.to(room).emit('chatUpdated', chat);
     });
     socket.on('disconnect', () => {
       delete users[userId];

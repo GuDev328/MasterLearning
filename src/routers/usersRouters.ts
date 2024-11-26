@@ -1,9 +1,12 @@
 import { Router } from 'express';
 import {
+  blockUserController,
   changePasswordController,
   forgotPasswordController,
+  getAllUsersController,
   getMeController,
   getProfileController,
+  getUserByIdController,
   loginController,
   loginGoogleController,
   logoutController,
@@ -12,6 +15,7 @@ import {
   resendVerifyEmailController,
   resetPasswordController,
   updateMeController,
+  updateUserController,
   verifyEmailController,
   verifyForgotPasswordController
 } from '~/controllers/usersControllers';
@@ -21,6 +25,7 @@ import {
   changePasswordValidator,
   forgotPasswordValidator,
   getProfileValidator,
+  isAdminValidator,
   loginValidator,
   refreshTokenValidator,
   registerValidator,
@@ -34,6 +39,11 @@ import {
 import { UpdateMeRequest } from '~/models/requests/UserRequests';
 import { catchError } from '~/utils/handler';
 const router = Router();
+
+router.get('/get-all', accessTokenValidator, isAdminValidator, catchError(getAllUsersController));
+router.post('/block-user', accessTokenValidator, isAdminValidator, catchError(blockUserController));
+router.get('/get-by-id/:id', accessTokenValidator, isAdminValidator, catchError(getUserByIdController));
+router.post('/update', accessTokenValidator, isAdminValidator, catchError(updateUserController));
 
 router.post('/login', loginValidator, catchError(loginController));
 router.get('/oauth/google', catchError(loginGoogleController));

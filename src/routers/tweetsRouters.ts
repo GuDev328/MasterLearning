@@ -7,6 +7,7 @@ import {
   getNewsFeedNotCensoredController,
   getTweetChildrenController,
   getTweetController,
+  rejectTweetController,
   updateTweetController
 } from '~/controllers/tweetsControllers';
 import {
@@ -85,5 +86,6 @@ router.get(
 );
 
 router.post('/censor', accessTokenValidator, catchError(censorTweetController));
+router.post('/reject', accessTokenValidator, catchError(rejectTweetController));
 
 export default router;

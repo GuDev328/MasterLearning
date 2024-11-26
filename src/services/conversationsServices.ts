@@ -4,36 +4,25 @@ import { ObjectId } from 'mongodb';
 class ConversationsService {
   constructor() {}
 
-  async getConversation(senderId: string, receiverUserId: string, limit: number, page: number) {
+  async getConversation(class_id: string, limit: number, page: number) {
     const result = await db.conversations
-      .find({
-        $or: [
-          {
-            receiver_id: new ObjectId(receiverUserId),
-            sender_id: new ObjectId(senderId)
-          },
-          {
-            receiver_id: new ObjectId(senderId),
-            sender_id: new ObjectId(receiverUserId)
+      .aggregate([
+        { $match: { class_id: new ObjectId(class_id) } },
+        {
+          $lookup: {
+            from: 'Users',
+            localField: 'sender_id',
+            foreignField: '_id',
+            as: 'user'
           }
-        ]
-      })
-      .sort({ created_at: -1 })
-      .skip(limit * (page - 1))
-      .limit(limit)
-      .toArray();
-    const total = await db.conversations.countDocuments({
-      $or: [
-        {
-          receiver_id: new ObjectId(receiverUserId),
-          sender_id: new ObjectId(senderId)
         },
-        {
-          receiver_id: new ObjectId(senderId),
-          sender_id: new ObjectId(receiverUserId)
-        }
-      ]
-    });
+        { $unwind: '$user' },
+        { $sort: { created_at: -1 } },
+        { $skip: limit * (page - 1) },
+        { $limit: limit }
+      ])
+      .toArray();
+    const total = await db.conversations.countDocuments({ class_id: new ObjectId(class_id) });
     return {
       result,
       page,
