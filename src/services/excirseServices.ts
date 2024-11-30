@@ -424,10 +424,13 @@ class ExcirseServices {
         },
         {
           $project: {
+            point:1,
+            created_at:1,
             user_info: {
-              password: 0,
-              emailVerifyToken: 0,
-              forgotPasswordToken: 0
+              name: 1,
+              email: 1,
+              date_of_birth: 1,
+              avatar:1
             }
           }
         }
