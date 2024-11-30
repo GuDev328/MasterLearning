@@ -49,6 +49,15 @@ export const censorLessonController = async (req: Request<any, any, any>, res: R
   });
 };
 
+export const rejectLessonController = async (req: Request, res: Response) => {
+  const { lesson_id } = req.body;
+  const result = await lessonsService.rejectLesson(lesson_id);
+  res.status(200).json({
+    result,
+    message: 'Đã từ chối bài giảng/tài liệu'
+  });
+};
+
 export const getLessonNotCensoredController = async (req: Request, res: Response) => {
   const type = req.body.type as LessonTypeEnum;
   let isAll = req.body.isAll;
