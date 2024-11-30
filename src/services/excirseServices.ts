@@ -409,6 +409,7 @@ class ExcirseServices {
   async getMarkExerciseByTeacher(id: string) {
       const typePont = await db.excirse.findOne({_id:new ObjectId(id)});
       const type = typePont?.point_type;
+      console.log("check type",type)
       let result ;
       if(type == PointType.First){
         result = await db.excirseAnswers.aggregate([
@@ -533,11 +534,7 @@ class ExcirseServices {
               created_at: 1  // Sắp xếp theo thời gian tạo tăng dần
             }
           },
-          {
-            $addFields: {
-              point_type: type  // Thêm trường point_type với giá trị cố định là 1
-            }
-          },
+         
           {
             $group: {
               _id: "$user_id",  // Nhóm theo user_id (học sinh)
@@ -547,13 +544,18 @@ class ExcirseServices {
             }
           },
           {
+            $addFields: {
+              point_type: type  // Thêm trường point_type với giá trị cố định là 1
+            }
+          },
+          {
             $project: {
               "user_info._id": 1,  // Lấy trường _id
               "user_info.name": 1,  // Lấy trường name
               "user_info.email": 1,  // Lấy trường email
               "user_info.date_of_birth": 1,  // Lấy trường date_of_birth
               "user_info.avatar": 1,  // Lấy trường avatar
-              maxPoint: 1,  // Hiển thị điểm cao nhất
+              point: 1,  // Hiển thị điểm cao nhất
               created_at: 1,  // Hiển thị thời gian tạo
               point_type:1
             }
