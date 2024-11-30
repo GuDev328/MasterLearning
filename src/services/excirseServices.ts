@@ -439,6 +439,29 @@ class ExcirseServices {
       console.log("chck result")
       return result
   }
+  async getMarkExerciseByStudent(id: string,userId:string) {
+    console.log("check id, userid",id,userId)
+    const result = await db.excirseAnswers.aggregate([
+      {
+        $match: {
+          exercise_id: new ObjectId(id),
+          status: AnswerExerciseStatus.Marked,
+          user_id:new ObjectId(userId)
+        }
+      },
+      {
+        $project: {
+          point:1,
+          created_at:1,
+        }
+      }
+    ])
+    .toArray();
+    console.log("chck result")
+    return result
 }
+ 
+}
+
 const excirseServices = new ExcirseServices();
 export default excirseServices;
