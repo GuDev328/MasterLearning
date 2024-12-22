@@ -89,7 +89,7 @@ class MediasService {
     const filesUploaded = await handleUploadPDF(req);
     const result: Media[] = await Promise.all(
       filesUploaded.map(async (fileUploaded) => {
-        const newPath = path.resolve('uploads/pdfs') + `\\${fileUploaded.newFilename.split('.')[0]}.pdf`;
+        const newPath = path.resolve('uploads/pdfs') + `/${fileUploaded.newFilename.split('.')[0]}.pdf`;
         const s3Result = await UploadFileToS3(
           'pdfs/' + fileUploaded.newFilename,
           newPath,
@@ -132,7 +132,9 @@ class MediasService {
         return {
           url: isProduction
             ? `${env.host}/medias/video-hls/${fileUploaded.newFilename.split('.')[0]}/master.m3u8`
-            : `http://localhost:${env.port}/medias/video-hls/${fileUploaded.newFilename.split('.')[0]}/master.m3u8`,
+            : `http://192.168.237.103:${env.port}/medias/video-hls/${
+                fileUploaded.newFilename.split('.')[0]
+              }/master.m3u8`,
           type: MediaType.VideoHLS
         };
       })
